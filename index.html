@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>File Shrinker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+:root {
+  --bg: #F5F6F6;
+  --surface: #FFFFFF;
+  --line: #D9DDDD;
+  --fg: #141A1A;
+  --muted: #5B6666;
+  --head: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --c-video: #0A7B70;
+  --c-audio: #3B4FD8;
+  --c-pdf: #C9402A;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0F1313;
+    --surface: #181E1E;
+    --line: #2D3838;
+    --fg: #ECF0F0;
+    --muted: #9AA8A8;
+    --c-video: #3CCFB4;
+    --c-audio: #8FA2FF;
+    --c-pdf: #FF8A6E;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding: 40px max(16px, env(safe-area-inset-right, 0px)) 56px max(16px, env(safe-area-inset-left, 0px));
+}
+.wrap { max-width: 760px; margin: 0 auto; }
+h1 { font-family: var(--head); font-weight: 700; font-size: clamp(2rem, 6vw, 2.8rem); letter-spacing: -0.02em; line-height: 1.05; margin: 0 0 10px; }
+.lead { margin: 0 0 28px; color: var(--muted); max-width: 56ch; }
+.tools { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.tool {
+  display: grid; gap: 6px; align-content: start; padding: 20px; text-decoration: none; color: inherit;
+  background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 12px;
+}
+.tool:hover { border-color: var(--c); }
+.tool:focus-visible { outline: 2px solid var(--c); outline-offset: 3px; }
+.tool b { font-family: var(--head); font-size: 1.25rem; }
+.tool span { color: var(--muted); font-size: 0.9rem; }
+.tool em { font-style: normal; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c); }
+.foot { margin: 28px 0 0; color: var(--muted); font-size: 0.88rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>File Shrinker</h1>
+  <p class="lead">Make videos, audio recordings and PDFs smaller. Everything runs in your own browser, and your files are never uploaded.</p>
+  <div class="tools">
+    <a class="tool" href="video.html" style="--c: var(--c-video)">
+      <em>Video</em><b>MP4 Compressor</b><span>Pick a resolution and quality, or a target size such as 25 MB.</span>
+    </a>
+    <a class="tool" href="audio.html" style="--c: var(--c-audio)">
+      <em>Audio</em><b>M4A Compressor</b><span>Shrink voice recordings, podcasts and songs to a compact M4A file.</span>
+    </a>
+    <a class="tool" href="pdf.html" style="--c: var(--c-pdf)">
+      <em>PDF</em><b>PDF Compressor</b><span>Reduce scans and slide decks. Pages become pictures, so text is no longer searchable.</span>
+    </a>
+  </div>
+  <p class="foot">The tools load their code from public CDNs on first use, so you need an internet connection when you open them.</p>
+</div>
+</body>
+</html>

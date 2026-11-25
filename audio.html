@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>M4A Compressor</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: source and settings in one column, sticky estimate and result panel beside it; stacks on phones. */
+:root {
+  --bg: #F4F5FA;
+  --surface: #FFFFFF;
+  --sunk: #EAECF5;
+  --line: #D8DBEA;
+  --fg: #12162B;
+  --muted: #5A6180;
+  --accent: #3B4FD8;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E1E5FB;
+  --warn: #8A4E00;
+  --warn-soft: #FBEFD8;
+  --danger: #B3261E;
+  --danger-soft: #FCE8E6;
+  --head: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C0F1D;
+    --surface: #131830;
+    --sunk: #1A2040;
+    --line: #2A3159;
+    --fg: #E7E9F6;
+    --muted: #9AA1C6;
+    --accent: #8FA2FF;
+    --accent-ink: #0B1033;
+    --accent-soft: #1E2650;
+    --warn: #E8B15A;
+    --warn-soft: #2D2312;
+    --danger: #FF9A90;
+    --danger-soft: #331A18;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C0F1D;
+  --surface: #131830;
+  --sunk: #1A2040;
+  --line: #2A3159;
+  --fg: #E7E9F6;
+  --muted: #9AA1C6;
+  --accent: #8FA2FF;
+  --accent-ink: #0B1033;
+  --accent-soft: #1E2650;
+  --warn: #E8B15A;
+  --warn-soft: #2D2312;
+  --danger: #FF9A90;
+  --danger-soft: #331A18;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 980px; margin: 0 auto; }
+h1 {
+  font-family: var(--head); font-weight: 700; font-size: clamp(1.8rem, 4.5vw, 2.4rem);
+  letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 8px; text-wrap: balance;
+}
+.lead { margin: 0; color: var(--muted); max-width: 58ch; }
+
+.grid {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  gap: 20px; margin-top: 26px; align-items: start;
+}
+.col { display: grid; gap: 20px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; min-width: 0; }
+.side { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); }
+@media (max-width: 820px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; }
+}
+
+h2 {
+  font-family: var(--head); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted); margin: 0 0 14px;
+}
+
+.drop {
+  position: relative; display: grid; gap: 4px; justify-items: center; text-align: center;
+  padding: 26px 16px; border: 1.5px dashed var(--line); border-radius: 12px; background: var(--sunk);
+  cursor: pointer; transition: border-color .15s, background-color .15s;
+}
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.drop.locked { opacity: .55; pointer-events: none; }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.drop svg { width: 34px; height: 34px; color: var(--accent); margin-bottom: 4px; }
+.drop strong { font-family: var(--head); font-size: 1.05rem; }
+.drop span { color: var(--muted); font-size: 0.88rem; }
+.engine { margin: 10px 0 0; font-size: 0.85rem; color: var(--muted); min-height: 1.3em; }
+.engine.bad { color: var(--danger); }
+
+.filehead { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; min-width: 0; }
+.fname { font-weight: 600; min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag {
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  background: var(--warn-soft); color: var(--warn); border-radius: 6px; padding: 2px 8px;
+}
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 12px 16px; margin: 0; }
+.facts div { min-width: 0; }
+.facts dt { font-size: 0.72rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.facts dd { margin: 2px 0 0; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.demo .facts dd { color: var(--muted); }
+
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.setting { margin: 0 0 22px; }
+.setting:last-child { margin-bottom: 0; }
+legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-size: 0.95rem; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.opt { position: relative; }
+.opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.opt span {
+  display: block; padding: 8px 14px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); cursor: pointer; font-size: 0.9rem; font-variant-numeric: tabular-nums;
+  transition: background-color .12s, border-color .12s;
+}
+.opt span:hover { border-color: var(--accent); }
+.opt input:checked + span { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.opt input:disabled + span { opacity: .38; cursor: not-allowed; }
+.opt input:disabled + span:hover { border-color: var(--line); }
+.note { margin: 8px 0 0; font-size: 0.86rem; color: var(--muted); }
+.targetrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.numwrap { display: inline-flex; align-items: center; gap: 8px; }
+input[type="number"] {
+  width: 96px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); color: var(--fg); font: inherit; font-variant-numeric: tabular-nums;
+}
+input[type="number"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chip {
+  font: inherit; font-size: 0.85rem; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--sunk); color: var(--fg); cursor: pointer;
+}
+.chip:hover { border-color: var(--accent); }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chip:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Bitrate ruler: log scale from 24 to 320 kbps */
+.ruler { position: relative; height: 44px; margin: 10px 8px 6px; }
+.ruler .track { position: absolute; left: 0; right: 0; top: 14px; height: 4px; background: var(--sunk); border-radius: 2px; }
+.ruler .fill { position: absolute; left: 0; top: 14px; height: 4px; background: var(--accent); border-radius: 2px; width: 0; transition: width .2s; }
+.ruler .tick { position: absolute; top: 22px; transform: translateX(-50%); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ruler .tick::before { content: ""; position: absolute; left: 50%; top: -7px; width: 1px; height: 5px; background: var(--line); }
+.ruler .pin { position: absolute; top: 8px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--accent); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--accent); transition: left .2s; }
+.ruler .orig { position: absolute; top: 9px; width: 2px; height: 14px; margin-left: -1px; background: var(--muted); }
+.rulercap { margin: 0; font-size: 0.8rem; color: var(--muted); }
+
+.estlabel { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.estlabel h2 { margin: 0; }
+.big {
+  font-family: var(--head); font-weight: 700; font-size: 2.3rem; letter-spacing: -0.02em;
+  line-height: 1.1; font-variant-numeric: tabular-nums; margin: 6px 0 2px;
+}
+.sub { margin: 0 0 14px; color: var(--muted); font-size: 0.92rem; }
+.bar, .pbar { height: 10px; border-radius: 999px; background: var(--sunk); overflow: hidden; }
+.bar i, .pbar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width .25s; }
+.barcap { display: flex; justify-content: space-between; margin: 6px 0 14px; font-size: 0.78rem; color: var(--muted); }
+.spec { margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.hints { display: grid; gap: 8px; margin-bottom: 14px; }
+.hints:empty { display: none; }
+.hint { margin: 0; padding: 8px 12px; border-radius: 8px; background: var(--warn-soft); color: var(--warn); font-size: 0.86rem; }
+.hint.bad { background: var(--danger-soft); color: var(--danger); }
+.btn {
+  width: 100%; font: inherit; font-weight: 600; padding: 12px 16px; border-radius: 10px;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer;
+}
+.btn:hover:not(:disabled) { filter: brightness(1.06); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn.small { width: auto; padding: 6px 12px; font-size: 0.85rem; font-weight: 500; }
+
+.progress { margin-top: 16px; }
+.progress p { margin: 8px 0 12px; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.result { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.result h3 { font-family: var(--head); font-size: 1.15rem; margin: 0 0 4px; }
+.result .sizes { margin: 0 0 12px; font-variant-numeric: tabular-nums; }
+.result .meta { margin: 0 0 12px; font-size: 0.85rem; color: var(--muted); }
+audio { display: block; width: 100%; margin-bottom: 12px; }
+.saved { margin: 10px 0 0; font-size: 0.88rem; color: var(--muted); }
+.fine { margin: 16px 0 0; font-size: 0.8rem; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>M4A Compressor</h1>
+    <p class="lead">Shrink a voice recording, podcast or song so it is easy to send. Compression runs in this browser tab, and the audio never leaves your device.</p>
+  </header>
+
+  <main class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="h-source">
+        <h2 id="h-source">1. Your audio</h2>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="audio/*,.m4a,.mp3,.wav,.flac,.ogg,.aac,.opus,.mp4,.mov">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12v0M6.5 9v6M10 5v14M13.5 8v8M17 10.5v3M20.5 12v0"/></svg>
+          <strong id="droptitle">Drop an audio file here, or click to choose</strong>
+          <span>M4A, MP3, WAV, FLAC, OGG, AAC. A video file works too, and only its sound is kept.</span>
+        </label>
+        <p class="engine" id="engine" role="status" aria-live="polite">Loading audio engine…</p>
+
+        <div id="filecard">
+          <div class="filehead">
+            <span class="fname" id="fname"></span>
+            <span class="tag" id="demoTag">Example</span>
+          </div>
+          <dl class="facts" id="facts"></dl>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-set">
+        <h2 id="h-set">2. Choose the result</h2>
+        <fieldset id="settings">
+          <div class="setting">
+            <fieldset>
+              <legend>Set size by</legend>
+              <div class="seg" id="seg-mode"></div>
+            </fieldset>
+            <div id="m-quality" style="margin-top:12px">
+              <div class="seg" id="seg-bitrate"></div>
+              <p class="note" id="bnote"></p>
+            </div>
+            <div id="m-target" style="margin-top:12px" hidden>
+              <div class="targetrow">
+                <label class="numwrap" for="target"><input type="number" id="target" min="0.1" step="0.5" value="10" inputmode="decimal"> MB</label>
+                <button type="button" class="chip" data-mb="5">5 MB</button>
+                <button type="button" class="chip" data-mb="10">10 MB</button>
+                <button type="button" class="chip" data-mb="25">25 MB</button>
+              </div>
+              <p class="note">The bitrate is chosen to land close to this size. Many email services limit attachments to about 25 MB.</p>
+            </div>
+            <div class="ruler" id="ruler" aria-hidden="true">
+              <div class="track"></div><div class="fill" id="rfill"></div>
+              <div class="orig" id="rorig" hidden></div>
+              <div class="pin" id="rpin"></div>
+            </div>
+            <p class="rulercap" id="rcap"></p>
+          </div>
+
+          <div class="setting">
+            <fieldset>
+              <legend>Channels</legend>
+              <div class="seg" id="seg-channels"></div>
+              <p class="note" id="cnote"></p>
+            </fieldset>
+          </div>
+
+          <div class="setting">
+            <fieldset>
+              <legend>Sample rate</legend>
+              <div class="seg" id="seg-rate"></div>
+              <p class="note">Lower rates cut high frequencies. 44.1 kHz is CD quality; 22 kHz is fine for speech.</p>
+            </fieldset>
+          </div>
+        </fieldset>
+      </section>
+    </div>
+
+    <aside class="panel side" aria-labelledby="h-est">
+      <div class="estlabel"><h2 id="h-est">Estimated result</h2><span class="tag" id="estTag">Example</span></div>
+      <p class="big" id="estSize">—</p>
+      <p class="sub" id="estSub"></p>
+      <div class="bar" aria-hidden="true"><i id="estBar"></i></div>
+      <div class="barcap"><span>New</span><span id="origCap">Original</span></div>
+      <p class="spec" id="spec"></p>
+      <div class="hints" id="hints"></div>
+      <button type="button" class="btn" id="go">Choose an audio file</button>
+
+      <div class="progress" id="progress" hidden>
+        <div class="pbar"><i id="pfill"></i></div>
+        <p id="ptext" role="status" aria-live="polite">Starting…</p>
+        <button type="button" class="btn ghost small" id="cancel">Cancel</button>
+        <p class="fine">Keep this tab open while it works.</p>
+      </div>
+
+      <div class="result" id="result" hidden>
+        <h3 id="rTitle">Done</h3>
+        <p class="sizes" id="rSizes"></p>
+        <audio id="preview" controls preload="metadata"></audio>
+        <p class="meta" id="rMeta"></p>
+        <button type="button" class="btn" id="save">Save compressed audio</button>
+        <p class="saved" id="saveNote" role="status" aria-live="polite"></p>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* Example profile shown until a real file is chosen */
+  var DEMO = { demo: true, duration: 750, size: 132.3e6, bitrate: 1411e3, channels: 2, rate: 44100, codec: 'WAV (PCM)', lossless: true };
+
+  var state = { file: null, profile: DEMO, mode: 'quality', bitrate: '128', channels: 'keep', rate: 'keep',
+                target: 10, busy: false, conv: null, outUrl: null, outBlob: null, outName: '' };
+  var M = null, dlPromise;
+
+  var MODE = [['quality', 'Quality'], ['target', 'Target file size']];
+  var BIT = ['48', '64', '96', '128', '192', '256'];
+  var BNOTE = {
+    '48': 'Speech only. Small, with some dullness.',
+    '64': 'Clear speech such as podcasts and voice memos.',
+    '96': 'Acceptable for music, good for speech.',
+    '128': 'Good music quality for most listeners.',
+    '192': 'High quality music.',
+    '256': 'Very close to the original for most ears.'
+  };
+  var CH = [['keep', 'Keep as is'], ['mono', 'Mono']];
+  var RATE = [['keep', 'Keep as is'], ['44100', '44.1 kHz'], ['32000', '32 kHz'], ['22050', '22 kHz']];
+  var LO = 24e3, HI = 320e3;
+
+  function fmtBytes(b) { if (b >= 1e9) return (b / 1e9).toFixed(2) + ' GB'; var mb = b / 1e6; return (mb >= 100 ? mb.toFixed(0) : mb.toFixed(1)) + ' MB'; }
+  function fmtTime(s) {
+    s = Math.max(0, Math.round(s));
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60, ss = (x < 10 ? '0' : '') + x;
+    return h ? h + ':' + (m < 10 ? '0' : '') + m + ':' + ss : m + ':' + ss;
+  }
+  function fmtKbps(b) { return Math.round(b / 1000) + ' kbps'; }
+  function fmtKHz(r) { return (r / 1000).toFixed(r % 1000 === 0 ? 0 : 1) + ' kHz'; }
+
+  function buildSeg(id, name, opts) {
+    var el = $(id);
+    opts.forEach(function (o) {
+      var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o + ' kbps';
+      var l = document.createElement('label'); l.className = 'opt';
+      var i = document.createElement('input'); i.type = 'radio'; i.name = name; i.value = v;
+      var s = document.createElement('span'); s.textContent = t;
+      l.appendChild(i); l.appendChild(s); el.appendChild(l);
+    });
+  }
+  function syncSeg(name, disabledFn) {
+    var inputs = document.querySelectorAll('input[name="' + name + '"]');
+    for (var k = 0; k < inputs.length; k++) {
+      inputs[k].checked = inputs[k].value === state[name];
+      inputs[k].disabled = state.busy || (disabledFn ? disabledFn(inputs[k].value) : false);
+    }
+  }
+  buildSeg('seg-mode', 'mode', MODE);
+  buildSeg('seg-bitrate', 'bitrate', BIT);
+  buildSeg('seg-channels', 'channels', CH);
+  buildSeg('seg-rate', 'rate', RATE);
+
+  /* ---------- Planning ---------- */
+  function plan() {
+    var p = state.profile, hints = [], invalid = false;
+    var ch = state.channels === 'mono' ? 1 : Math.min(2, p.channels);
+    var rate = state.rate === 'keep' ? p.rate : Math.min(p.rate, Number(state.rate));
+    var bps, clamped = null;
+    if (state.mode === 'quality') {
+      bps = Number(state.bitrate) * 1000;
+    } else {
+      var mb = Number(state.target);
+      if (!(mb > 0)) { invalid = true; mb = 1; }
+      bps = (mb * 1e6 * 8 * 0.97) / p.duration;
+      if (bps < LO) { clamped = 'low'; bps = LO; }
+      if (bps > HI) { clamped = 'high'; bps = HI; }
+    }
+    var est = bps * p.duration / 8 * 1.02;
+    if (!invalid) {
+      if (clamped === 'low') hints.push(['bad', 'This is too small for a recording this long. The lowest setting gives about ' + fmtBytes(est) + '.']);
+      if (clamped === 'high') hints.push(['', 'The target is larger than the best setting needs. The file will be about ' + fmtBytes(est) + '.']);
+      if (ch === 2 && bps < 64e3 && !clamped) hints.push(['', 'At this bitrate stereo sounds thin. Mono keeps speech clearer.']);
+      if (bps < 40e3 && !clamped) hints.push(['bad', 'Very low bitrate. Expect muffled, watery sound.']);
+      if (!p.lossless && est > p.size * 0.95) hints.push(['', 'The original is already compressed at about this level. Choose a lower bitrate to save space.']);
+    }
+    return { ch: ch, rate: rate, bps: bps, est: est, hints: hints, invalid: invalid };
+  }
+
+  function posOf(bps) { return Math.max(0, Math.min(1, (Math.log(bps) - Math.log(LO)) / (Math.log(HI) - Math.log(LO)))); }
+  (function ticks() {
+    [32, 64, 128, 256].forEach(function (k) {
+      var t = document.createElement('span'); t.className = 'tick'; t.textContent = k;
+      t.style.left = (posOf(k * 1000) * 100) + '%'; $('ruler').appendChild(t);
+    });
+  })();
+
+  /* ---------- Rendering ---------- */
+  function render() {
+    var p = state.profile, pl = plan();
+    $('fname').textContent = p.demo ? 'Example recording' : state.file.name;
+    $('demoTag').hidden = !p.demo; $('estTag').hidden = !p.demo;
+    $('filecard').className = p.demo ? 'demo' : '';
+    $('droptitle').textContent = p.demo ? 'Drop an audio file here, or click to choose' : 'Choose a different file';
+
+    var facts = [['Size', fmtBytes(p.size)], ['Length', fmtTime(p.duration)], ['Format', p.codec],
+      ['Bitrate', fmtKbps(p.bitrate)], ['Channels', p.channels === 1 ? 'Mono' : p.channels === 2 ? 'Stereo' : p.channels + ' channels'], ['Sample rate', fmtKHz(p.rate)]];
+    var fe = $('facts'); fe.textContent = '';
+    facts.forEach(function (f) {
+      var d = document.createElement('div'), dt = document.createElement('dt'), dd = document.createElement('dd');
+      dt.textContent = f[0]; dd.textContent = f[1]; d.appendChild(dt); d.appendChild(dd); fe.appendChild(d);
+    });
+
+    syncSeg('mode'); syncSeg('bitrate');
+    syncSeg('channels', function (v) { return v === 'mono' && p.channels === 1; });
+    syncSeg('rate', function (v) { return v !== 'keep' && Number(v) >= p.rate; });
+    $('target').disabled = state.busy;
+    var chips = document.querySelectorAll('.chip'); for (var c = 0; c < chips.length; c++) chips[c].disabled = state.busy;
+    $('m-quality').hidden = state.mode !== 'quality';
+    $('m-target').hidden = state.mode !== 'target';
+    $('bnote').textContent = BNOTE[state.bitrate];
+    $('cnote').textContent = p.channels === 1 ? 'This audio is already mono.'
+      : state.channels === 'mono' ? 'Left and right are mixed into one channel. Good for speech and saves space at low bitrates.'
+      : 'Left and right channels are kept.';
+
+    var pos = posOf(pl.bps);
+    $('rpin').style.left = (pos * 100) + '%'; $('rfill').style.width = (pos * 100) + '%';
+    var og = $('rorig');
+    if (p.bitrate <= HI) { og.hidden = false; og.style.left = (posOf(p.bitrate) * 100) + '%'; } else og.hidden = true;
+    $('rcap').textContent = 'Output ' + fmtKbps(pl.bps) + (p.bitrate <= HI ? ' · grey line is the original at ' + fmtKbps(p.bitrate) : ' · original is ' + fmtKbps(p.bitrate) + ', off this scale');
+
+    if (pl.invalid) { $('estSize').textContent = '—'; $('estSub').textContent = 'Enter a size in MB.'; $('estBar').style.width = '0%'; }
+    else {
+      $('estSize').textContent = '≈ ' + fmtBytes(pl.est);
+      var pct = Math.round((1 - pl.est / p.size) * 100);
+      $('estSub').textContent = pct > 0 ? pct + '% smaller than ' + fmtBytes(p.size) : 'No savings expected from ' + fmtBytes(p.size);
+      $('estBar').style.width = Math.max(2, Math.min(100, pl.est / p.size * 100)) + '%';
+    }
+    $('origCap').textContent = 'Original ' + fmtBytes(p.size);
+    $('spec').textContent = 'AAC · ' + fmtKbps(pl.bps) + ' · ' + (pl.ch === 1 ? 'mono' : 'stereo') + ' · ' + fmtKHz(pl.rate);
+
+    var he = $('hints'); he.textContent = '';
+    pl.hints.forEach(function (h) { var el = document.createElement('p'); el.className = 'hint' + (h[0] ? ' ' + h[0] : ''); el.textContent = h[1]; he.appendChild(el); });
+
+    var go = $('go');
+    go.textContent = p.demo ? 'Choose an audio file' : 'Compress audio';
+    go.disabled = state.busy || (!p.demo && (pl.invalid || !M));
+    $('drop').classList.toggle('locked', state.busy);
+    $('file').disabled = state.busy;
+  }
+
+  /* ---------- Engine loading ---------- */
+  function loadScript(src) { return new Promise(function (res, rej) { var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+  function loadEngine() {
+    var hosts = ['https://cdn.jsdelivr.net/npm/mediabunny@1.46.0/dist/bundles/', 'https://unpkg.com/mediabunny@1.46.0/dist/bundles/'];
+    var chain = Promise.resolve(null);
+    chain = chain.then(function () { return import('https://cdn.jsdelivr.net/npm/mediabunny@1.46.0/+esm').catch(function () { return null; }); });
+    hosts.forEach(function (base) {
+      ['mediabunny.mjs', 'mediabunny.min.mjs'].forEach(function (f) {
+        chain = chain.then(function (m) { return m || import(base + f).catch(function () { return null; }); });
+      });
+    });
+    hosts.forEach(function (base) {
+      ['mediabunny.cjs', 'mediabunny.min.cjs'].forEach(function (f) {
+        chain = chain.then(function (m) { return m || loadScript(base + f).then(function () { return window.Mediabunny || null; }, function () { return null; }); });
+      });
+    });
+    return chain;
+  }
+  var engineP;
+  if (typeof window.AudioEncoder === 'undefined' || typeof window.AudioDecoder === 'undefined') {
+    $('engine').className = 'engine bad';
+    $('engine').textContent = 'This browser cannot compress audio. Open this page in a current version of Chrome, Edge or Safari.';
+    engineP = Promise.resolve(null);
+  } else {
+    engineP = loadEngine().then(function (m) {
+      M = m; var e = $('engine');
+      if (m) { e.textContent = 'Ready.'; setTimeout(function () { if (e.textContent === 'Ready.') e.textContent = ''; }, 2500); }
+      else { e.className = 'engine bad'; e.textContent = 'The audio engine could not load. Check your connection and reload the page.'; }
+      render(); return m;
+    });
+  }
+  dlPromise = (window.claude && window.claude.use) ? window.claude.use('downloads').then(function (d) { return d; }, function () { return null; }) : Promise.resolve(null);
+
+  /* ---------- Reading the chosen file ---------- */
+  function showError(msg) { var el = document.createElement('p'); el.className = 'hint bad'; el.textContent = msg; $('hints').appendChild(el); }
+  function resetResult() {
+    $('result').hidden = true; $('progress').hidden = true; $('saveNote').textContent = '';
+    var a = $('preview'); a.removeAttribute('src'); a.load();
+    if (state.outUrl) { try { URL.revokeObjectURL(state.outUrl); } catch (e) {} }
+    state.outUrl = null; state.outBlob = null;
+  }
+  function codecLabel(c) {
+    if (!c) return 'Audio';
+    if (/^pcm/.test(c)) return 'WAV (PCM)';
+    var map = { aac: 'AAC', mp3: 'MP3', flac: 'FLAC', opus: 'Opus', vorbis: 'Vorbis', alac: 'ALAC' };
+    return map[c] || String(c).toUpperCase();
+  }
+
+  async function analyze(file) {
+    resetResult();
+    var eng = $('engine'); eng.className = 'engine'; eng.textContent = 'Reading audio…';
+    var m = await engineP;
+    if (!m) { eng.className = 'engine bad'; return; }
+    var input = new m.Input({ source: new m.BlobSource(file), formats: m.ALL_FORMATS });
+    try {
+      var at = await input.getPrimaryAudioTrack();
+      if (!at) throw new Error('This file has no audio track.');
+      var duration = await input.computeDuration();
+      if (!(duration > 0)) throw new Error('Could not read the length of this file.');
+      var stats = null; try { stats = await at.computePacketStats(200); } catch (e) {}
+      var canDecode = true; try { canDecode = await at.canDecode(); } catch (e) {}
+      var codec = at.codec;
+      var prof = {
+        demo: false, duration: duration, size: file.size,
+        bitrate: stats && stats.averageBitrate ? stats.averageBitrate : file.size * 8 / duration,
+        channels: at.numberOfChannels, rate: at.sampleRate, codec: codecLabel(codec),
+        lossless: /^pcm/.test(codec || '') || codec === 'flac' || codec === 'alac'
+      };
+      state.file = file; state.profile = prof;
+      state.channels = 'keep'; state.rate = 'keep'; state.mode = 'quality';
+      state.bitrate = prof.channels === 1 ? '96' : '128';
+      eng.textContent = ''; render();
+      if (!canDecode) showError('This browser may not be able to read this audio format. Try the latest Chrome.');
+    } catch (err) {
+      eng.className = 'engine bad'; eng.textContent = 'Could not read this file. ' + (err && err.message ? err.message : '');
+    } finally { try { input.dispose && input.dispose(); } catch (e) {} }
+  }
+
+  /* ---------- Compression ---------- */
+  async function run() {
+    if (state.busy || state.profile.demo || !M) return;
+    var p = state.profile, pl = plan();
+    resetResult(); state.busy = true; render();
+    $('progress').hidden = false; $('pfill').style.width = '0%'; $('ptext').textContent = 'Starting…';
+    var t0 = performance.now();
+    var input = new M.Input({ source: new M.BlobSource(state.file), formats: M.ALL_FORMATS });
+    try {
+      if (M.canEncodeAudio) {
+        var ok = await M.canEncodeAudio('aac');
+        if (!ok) throw new Error('This browser cannot create AAC audio. Try Chrome, Edge or Safari.');
+      }
+      var target = new M.BufferTarget();
+      var output = new M.Output({ format: new M.Mp4OutputFormat({ fastStart: 'in-memory' }), target: target });
+      var audio = { codec: 'aac', bitrate: Math.round(pl.bps), forceTranscode: true };
+      if (pl.ch !== p.channels) audio.numberOfChannels = pl.ch;
+      if (pl.rate !== p.rate) audio.sampleRate = pl.rate;
+      var conv = await M.Conversion.init({ input: input, output: output, video: { discard: true }, audio: audio });
+      if (!conv.isValid) throw new Error('This browser cannot convert this audio.');
+      state.conv = conv;
+      conv.onProgress = function (pr) {
+        var pct = Math.max(0, Math.min(1, pr));
+        $('pfill').style.width = (pct * 100).toFixed(1) + '%';
+        var el = (performance.now() - t0) / 1000, eta = pct > 0.05 ? el / pct - el : null;
+        $('ptext').textContent = 'Compressing… ' + Math.round(pct * 100) + '%' + (eta !== null ? ' · about ' + fmtTime(eta) + ' left' : '');
+      };
+      await conv.execute();
+      var blob = new Blob([target.buffer], { type: 'audio/mp4' });
+      state.outBlob = blob; state.outName = state.file.name.replace(/\.[^.]+$/, '') + '-compressed.m4a';
+      state.outUrl = URL.createObjectURL(blob);
+      var took = (performance.now() - t0) / 1000;
+      $('progress').hidden = true;
+      var pct2 = Math.round((1 - blob.size / p.size) * 100);
+      $('rTitle').textContent = pct2 > 0 ? 'Done. ' + pct2 + '% smaller.' : 'Done, but not smaller.';
+      $('rSizes').textContent = fmtBytes(p.size) + '  →  ' + fmtBytes(blob.size);
+      $('rMeta').textContent = 'AAC · ' + fmtKbps(pl.bps) + ' · ' + (pl.ch === 1 ? 'mono' : 'stereo') + ' · finished in ' + fmtTime(took) +
+        (pct2 <= 0 ? '. The original may be the better file; try a lower bitrate.' : '.');
+      $('preview').src = state.outUrl;
+      $('result').hidden = false;
+      $('save').hidden = false; $('saveNote').textContent = '';
+    } catch (err) {
+      $('progress').hidden = true;
+      var canceled = err && (err.name === 'ConversionCanceledError' || (M.ConversionCanceledError && err instanceof M.ConversionCanceledError));
+      if (!canceled) showError('Compression stopped. ' + (err && err.message ? err.message : 'Please try another setting.'));
+    } finally {
+      state.busy = false; state.conv = null;
+      try { input.dispose && input.dispose(); } catch (e) {}
+      render();
+    }
+  }
+
+  function plainDownload(blob, name) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e) {} a.remove(); }, 4000);
+  }
+
+  async function save() {
+    if (!state.outBlob) return;
+    var note = $('saveNote'), dl = await dlPromise;
+    if (!dl) { plainDownload(state.outBlob, state.outName); note.textContent = 'Downloading ' + state.outName + '.'; return; }
+    try { await dl.save({ filename: state.outName, data: state.outBlob }); note.textContent = 'Saved as ' + state.outName + '. It is sound only; rename the ending to .m4a if you like.'; }
+    catch (e) {
+      var code = e && e.code;
+      note.textContent = code === 'declined' ? 'Save cancelled. You can try again.'
+        : code === 'rate_limited' ? 'A save prompt is already open. Wait a moment and try again.'
+        : 'The file could not be saved here.';
+    }
+  }
+
+  /* ---------- Events ---------- */
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t && t.type === 'radio' && Object.prototype.hasOwnProperty.call(state, t.name)) { state[t.name] = t.value; render(); }
+  });
+  $('target').addEventListener('input', function () { state.target = parseFloat(this.value); render(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (c) {
+    c.addEventListener('click', function () { state.target = Number(c.getAttribute('data-mb')); $('target').value = state.target; state.mode = 'target'; render(); });
+  });
+  $('file').addEventListener('change', function () { var f = this.files && this.files[0]; if (f) analyze(f); this.value = ''; });
+  var drop = $('drop');
+  ['dragenter', 'dragover'].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function (e) { var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f && !state.busy) analyze(f); });
+  $('go').addEventListener('click', function () { if (state.profile.demo) $('file').click(); else run(); });
+  $('cancel').addEventListener('click', function () { if (state.conv) { $('ptext').textContent = 'Cancelling…'; state.conv.cancel(); } });
+  $('save').addEventListener('click', save);
+
+  render();
+})();
+</script>
+</body>
+</html>
