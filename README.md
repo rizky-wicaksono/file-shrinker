@@ -15,7 +15,7 @@ Built by [Rizky Wicaksono](https://rizky-wicaksono.github.io) as part of a publi
 | [`index.html`](index.html) | Start page that links to the three tools | |
 | [`video.html`](video.html) | **MP4 Compressor.** Choose a resolution and quality, or type a target size such as 25 MB | Event footage, spokesperson clips, videos that are too big for email or WhatsApp |
 | [`audio.html`](audio.html) | **M4A Compressor.** Set bitrate, switch to mono, lower the sample rate. Saves a real `.m4a` file | Interview recordings, podcasts, voice notes |
-| [`pdf.html`](pdf.html) | **PDF Compressor.** Shrinks scans and slide decks | Press kits, scanned documents, decks that bounce off upload limits |
+| [`pdf.html`](pdf.html) | **PDF Compressor.** Two methods: *Keep text* shrinks only the pictures inside the PDF, *Pages as pictures* turns each page into one image. Set a target such as "under 18 MB" and it picks the sharpest setting that fits | Heavy slide decks for email, press kits, scanned documents |
 
 ## How to use it
 
@@ -29,7 +29,8 @@ Built by [Rizky Wicaksono](https://rizky-wicaksono.github.io) as part of a publi
 
 - Use a current version of Chrome, Edge or Safari. The video and audio tools rely on the encoders built into the browser.
 - Big or long videos take longer, because your own computer is doing the work. Keep the tab open until it finishes.
-- **PDF note:** the PDF tool turns each page into an image. That makes scans and image-heavy decks much smaller, but the text is no longer searchable or selectable. Keep the original if you need to copy text from it.
+- **PDF decks:** use **Keep text** (the default). It resizes and re-saves only the photos and pictures, so text stays searchable, and links and fonts are kept. Use **Pages as pictures** for scans; it shrinks them more, but text can no longer be selected.
+- **Email size:** Gmail and Outlook count their 25 MB limit after the attachment is encoded, which adds about a third. Aim for **18 MB or less**; that is the default target in the PDF tool.
 
 ## Privacy: nothing is uploaded
 
@@ -41,7 +42,7 @@ File Shrinker works differently:
 - There are no accounts, no tracking and no analytics.
 - When you close the tab, everything is gone.
 
-The only things fetched from the internet are the tool's own code libraries and fonts (see [Technical notes](#technical-notes)), and only when a page first opens. Your files are not part of those requests.
+The pages don't load anything from other websites either: the code libraries and fonts are stored in this repository (see [Technical notes](#technical-notes)).
 
 ## Why this exists: public relations engineering
 
@@ -67,22 +68,37 @@ The tools are plain HTML files, so GitHub Pages can host them for free with no b
 4. Choose branch **main** and folder **/ (root)**, then click **Save**.
 5. Wait one or two minutes. The address appears at the top of the Pages screen, usually `https://rizky-wicaksono.github.io/file-shrinker/`.
 
-To run it without the internet hosting, download the files and open `index.html` in your browser.
+To try it on your own computer, download the repository and run a small local web server in the folder, for example `python3 -m http.server`, then open `http://localhost:8000`. Opening `index.html` straight from disk also works for the PDF tool; the video and audio tools then fall back to loading their library from a public CDN, because browsers block that kind of file from disk.
 
 ## Technical notes
 
 - Plain HTML, CSS and JavaScript. No build step and no server.
-- Video and audio: [Mediabunny](https://github.com/Vanilagy/mediabunny) 1.46.0 with the browser's WebCodecs encoders, loaded from jsDelivr (unpkg as a fallback).
-- PDF: [PDF.js](https://mozilla.github.io/pdf.js/) 3.11.174 to render pages and [pdf-lib](https://pdf-lib.js.org/) 1.17.1 to build the new file, loaded from cdnjs.
-- Fonts: Inter and Space Grotesk from Google Fonts.
-- Because the libraries come from public CDNs, you need an internet connection the first time a page opens.
+- Video and audio: [Mediabunny](https://github.com/Vanilagy/mediabunny) 1.46.0 with the browser's WebCodecs encoders.
+- PDF: [PDF.js](https://mozilla.github.io/pdf.js/) 3.11.174 to read and render pages, and [pdf-lib](https://pdf-lib.js.org/) 1.17.1 to write the new file.
+- *Keep text* finds every picture in the PDF, decodes it in the browser, scales it down to what the page size needs at the chosen quality (for example 150 dpi for "Balanced"), and saves it as JPEG. Transparency masks stay lossless. A picture is only replaced when the new version is clearly smaller. Text, fonts, vector graphics and links are copied unchanged.
+- Fonts: Inter and Space Grotesk.
+- Everything is stored in the repository: libraries in `lib/`, fonts in `fonts/`, and their licenses in `licenses/`.
+
+```
+index.html   video.html   audio.html   pdf.html
+lib/         pdf.min.js, pdf.worker.min.js, pdf-lib.min.js, mediabunny.min.mjs
+fonts/       fonts.css and six .woff2 files
+licenses/    licenses for the libraries and fonts
+og.png       preview image for links shared on WhatsApp, LinkedIn and so on
+```
 
 ## Roadmap
 
-Ideas under discussion, not yet built:
+Done:
 
-- A PDF mode that keeps text searchable (compressing only the images inside the PDF).
-- Bundling the libraries inside the repository so the tools work fully offline and don't depend on CDNs.
+- PDF *Keep text* mode that compresses only the pictures, so decks stay searchable.
+- Target size for PDFs ("under 18 MB"), picking the sharpest setting that fits.
+- Libraries and fonts stored in the repository, with no CDN calls.
+
+Ideas:
+
+- Also shrink CMYK and other less common picture types inside PDFs (they are left as they are for now).
+- Shrink pictures inside PowerPoint (`.pptx`) files directly.
 
 Suggestions and bug reports are welcome through GitHub Issues.
 

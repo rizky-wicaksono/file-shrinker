@@ -3,8 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Shrink MP4 videos to a target size such as 25 MB, right in your browser. Files are never uploaded.">
+<meta name="author" content="Rizky Wicaksono">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="File Shrinker">
+<meta property="og:title" content="MP4 Compressor · File Shrinker">
+<meta property="og:description" content="Shrink MP4 videos to a target size such as 25 MB, right in your browser. Files are never uploaded.">
+<meta property="og:url" content="https://rizky-wicaksono.github.io/file-shrinker/video.html">
+<meta property="og:image" content="https://rizky-wicaksono.github.io/file-shrinker/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <title>MP4 Compressor</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Layout: settings column on the left, a sticky "result" panel on the right; stacks on phones. */
 :root {
@@ -229,11 +241,17 @@ video { display: block; width: 100%; max-height: 300px; border-radius: 8px; back
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+.back { display: inline-block; margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); text-decoration: none; }
+.back:hover { color: var(--fg); text-decoration: underline; }
+.credit { margin: 36px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+.credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.credit a:hover { color: var(--fg); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
+    <a class="back" href="index.html">← All tools</a>
     <h1>MP4 Compressor</h1>
     <p class="lead">Make a video smaller so it is easy to email or upload. Compression happens in this browser tab, and the video never leaves your device.</p>
   </header>
@@ -336,6 +354,7 @@ video { display: block; width: 100%; max-height: 300px; border-radius: 8px; back
       </div>
     </aside>
   </main>
+  <footer class="credit">Made by <a href="https://rizky-wicaksono.github.io">Rizky Wicaksono</a>, public relations engineer. Free to use, nothing is uploaded. <a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a>.</footer>
 </div>
 
 <script>
@@ -522,7 +541,9 @@ video { display: block; width: 100%; max-height: 300px; border-radius: 8px; back
   function loadEngine() {
     var hosts = ['https://cdn.jsdelivr.net/npm/mediabunny@1.46.0/dist/bundles/', 'https://unpkg.com/mediabunny@1.46.0/dist/bundles/'];
     var chain = Promise.resolve(null);
-    chain = chain.then(function () { return import('https://cdn.jsdelivr.net/npm/mediabunny@1.46.0/+esm').catch(function () { return null; }); });
+    chain = chain.then(function () { return import('./lib/mediabunny.min.mjs').catch(function () { return null; }); });
+    /* CDN fallbacks: only used if the local copy cannot load (for example when the page is opened straight from disk). */
+    chain = chain.then(function (m) { return m || import('https://cdn.jsdelivr.net/npm/mediabunny@1.46.0/+esm').catch(function () { return null; }); });
     hosts.forEach(function (base) {
       chain = chain.then(function (m) {
         if (m) return m;

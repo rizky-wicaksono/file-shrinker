@@ -3,8 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Free tools to make videos, audio and PDFs smaller, right in your browser. Files are never uploaded.">
+<meta name="author" content="Rizky Wicaksono">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="File Shrinker">
+<meta property="og:title" content="File Shrinker">
+<meta property="og:description" content="Free tools to make videos, audio and PDFs smaller, right in your browser. Files are never uploaded.">
+<meta property="og:url" content="https://rizky-wicaksono.github.io/file-shrinker/">
+<meta property="og:image" content="https://rizky-wicaksono.github.io/file-shrinker/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <title>File Shrinker</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root {
   --bg: #F5F6F6;
@@ -50,6 +62,11 @@ h1 { font-family: var(--head); font-weight: 700; font-size: clamp(2rem, 6vw, 2.8
 .tool span { color: var(--muted); font-size: 0.9rem; }
 .tool em { font-style: normal; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c); }
 .foot { margin: 28px 0 0; color: var(--muted); font-size: 0.88rem; }
+.back { display: inline-block; margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); text-decoration: none; }
+.back:hover { color: var(--fg); text-decoration: underline; }
+.credit { margin: 36px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+.credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.credit a:hover { color: var(--fg); }
 </style>
 </head>
 <body>
@@ -64,10 +81,11 @@ h1 { font-family: var(--head); font-weight: 700; font-size: clamp(2rem, 6vw, 2.8
       <em>Audio</em><b>M4A Compressor</b><span>Shrink voice recordings, podcasts and songs to a compact M4A file.</span>
     </a>
     <a class="tool" href="pdf.html" style="--c: var(--c-pdf)">
-      <em>PDF</em><b>PDF Compressor</b><span>Reduce scans and slide decks. Pages become pictures, so text is no longer searchable.</span>
+      <em>PDF</em><b>PDF Compressor</b><span>Shrink heavy slide decks to fit an email. Text stays searchable.</span>
     </a>
   </div>
-  <p class="foot">The tools load their code from public CDNs on first use, so you need an internet connection when you open them.</p>
+  <p class="foot">Everything the tools need is stored on this site. Your files stay in your browser and are never sent anywhere.</p>
+  <footer class="credit">Made by <a href="https://rizky-wicaksono.github.io">Rizky Wicaksono</a>, public relations engineer. Free to use, nothing is uploaded. <a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a>.</footer>
 </div>
 </body>
 </html>
