@@ -30,7 +30,7 @@ Built by [Rizky Wicaksono](https://rizky-wicaksono.github.io) as part of a publi
 - Use a current version of Chrome, Edge or Safari. The video and audio tools rely on the encoders built into the browser.
 - Big or long videos take longer, because your own computer is doing the work. Keep the tab open until it finishes.
 - **PDF decks:** use **Keep text** (the default). It resizes and re-saves only the photos and pictures, so text stays searchable, and links and fonts are kept. Use **Pages as pictures** for scans; it shrinks them more, but text can no longer be selected.
-- **Email size:** Gmail and Outlook count their 25 MB limit after the attachment is encoded, which adds about a third. Aim for **18 MB or less**; that is the default target in the PDF tool.
+- **Email size:** Gmail and Outlook.com allow 25 MB attachments, but email encoding makes a file about a third bigger on the way, and some mail servers allow less. Aim for **18 MB or less** to leave room; that is the default target in the PDF tool. More in the [PDF guide](https://rizky-wicaksono.github.io/guides/how-to-compress-a-pdf-for-email/).
 
 ## Privacy: nothing is uploaded
 
