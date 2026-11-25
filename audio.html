@@ -17,59 +17,9 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <title>M4A Compressor</title>
 <link rel="stylesheet" href="fonts/fonts.css">
+<meta name="theme-color" content="#0a0a0a">
 <style>
 /* Layout: source and settings in one column, sticky estimate and result panel beside it; stacks on phones. */
-:root {
-  --bg: #F4F5FA;
-  --surface: #FFFFFF;
-  --sunk: #EAECF5;
-  --line: #D8DBEA;
-  --fg: #12162B;
-  --muted: #5A6180;
-  --accent: #3B4FD8;
-  --accent-ink: #FFFFFF;
-  --accent-soft: #E1E5FB;
-  --warn: #8A4E00;
-  --warn-soft: #FBEFD8;
-  --danger: #B3261E;
-  --danger-soft: #FCE8E6;
-  --head: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0C0F1D;
-    --surface: #131830;
-    --sunk: #1A2040;
-    --line: #2A3159;
-    --fg: #E7E9F6;
-    --muted: #9AA1C6;
-    --accent: #8FA2FF;
-    --accent-ink: #0B1033;
-    --accent-soft: #1E2650;
-    --warn: #E8B15A;
-    --warn-soft: #2D2312;
-    --danger: #FF9A90;
-    --danger-soft: #331A18;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0C0F1D;
-  --surface: #131830;
-  --sunk: #1A2040;
-  --line: #2A3159;
-  --fg: #E7E9F6;
-  --muted: #9AA1C6;
-  --accent: #8FA2FF;
-  --accent-ink: #0B1033;
-  --accent-soft: #1E2650;
-  --warn: #E8B15A;
-  --warn-soft: #2D2312;
-  --danger: #FF9A90;
-  --danger-soft: #331A18;
-  color-scheme: dark;
-}
 
 * { box-sizing: border-box; }
 body {
@@ -213,22 +163,30 @@ audio { display: block; width: 100%; margin-bottom: 12px; }
 .fine { margin: 16px 0 0; font-size: 0.8rem; color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-.back { display: inline-block; margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); text-decoration: none; }
-.back:hover { color: var(--fg); text-decoration: underline; }
-.credit { margin: 36px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
-.credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-.credit a:hover { color: var(--fg); }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
+<a class="skip" href="#main">Skip to the tool</a>
+<header class="sitebar"><div class="wrap">
+  <a class="brand" href="https://rizky-wicaksono.github.io/"><i aria-hidden="true"></i>Rizky Wicaksono</a>
+  <nav aria-label="Main"><ul>
+    <li><a href="https://rizky-wicaksono.github.io/tools/">Tools</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/#work">Work</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/guides/">PR Guides</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/#contact">Contact</a></li>
+  </ul></nav>
+</div></header>
+<div class="hero"><div class="wrap">
+  <a class="crumb" href="index.html">← File Shrinker</a>
+  <h1>M4A Compressor</h1>
+  <p class="lead">Shrink a voice recording, podcast or song so it is easy to send. Compression runs in this browser tab, and the audio never leaves your device.</p>
+    <ul class="trust" aria-label="About this tool">
+      <li>Free, no sign-up</li><li>Files stay on your device</li><li>Saves as M4A</li>
+    </ul>
+</div></div>
 <div class="wrap">
-  <header>
-    <a class="back" href="index.html">← All tools</a>
-    <h1>M4A Compressor</h1>
-    <p class="lead">Shrink a voice recording, podcast or song so it is easy to send. Compression runs in this browser tab, and the audio never leaves your device.</p>
-  </header>
-
-  <main class="grid">
+  <main class="grid" id="main">
     <div class="col">
       <section class="panel" aria-labelledby="h-source">
         <h2 id="h-source">1. Your audio</h2>
@@ -298,7 +256,7 @@ audio { display: block; width: 100%; margin-bottom: 12px; }
     </div>
 
     <aside class="panel side" aria-labelledby="h-est">
-      <div class="estlabel"><h2 id="h-est">Estimated result</h2><span class="tag" id="estTag">Example</span></div>
+      <div class="estlabel"><h2 id="h-est">3. Estimate and compress</h2><span class="tag" id="estTag">Example</span></div>
       <p class="big" id="estSize">—</p>
       <p class="sub" id="estSub"></p>
       <div class="bar" aria-hidden="true"><i id="estBar"></i></div>
@@ -324,8 +282,15 @@ audio { display: block; width: 100%; margin-bottom: 12px; }
       </div>
     </aside>
   </main>
-  <footer class="credit">Made by <a href="https://rizky-wicaksono.github.io">Rizky Wicaksono</a>, public relations engineer. Free to use, nothing is uploaded. <a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a>.</footer>
 </div>
+<footer class="sitefoot"><div class="wrap">
+  <p>File Shrinker is made by <a href="https://rizky-wicaksono.github.io/">Rizky Wicaksono</a>, public relations engineer. Free to use. Your files never leave this browser.</p>
+  <ul>
+    <li><a href="https://rizky-wicaksono.github.io/tools/">All tools</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/">Portfolio</a></li>
+    <li><a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a></li>
+  </ul>
+</div></footer>
 
 <script>
 (function () {
@@ -548,7 +513,7 @@ audio { display: block; width: 100%; margin-bottom: 12px; }
       eng.textContent = ''; render();
       if (!canDecode) showError('This browser may not be able to read this audio format. Try the latest Chrome.');
     } catch (err) {
-      eng.className = 'engine bad'; eng.textContent = 'Could not read this file. ' + (err && err.message ? err.message : '');
+      eng.className = 'engine bad'; eng.textContent = 'This file could not be opened. ' + (err && err.message ? err.message + ' ' : '') + 'Check that it plays on this device, or choose another file.';
     } finally { try { input.dispose && input.dispose(); } catch (e) {} }
   }
 
@@ -596,7 +561,7 @@ audio { display: block; width: 100%; margin-bottom: 12px; }
     } catch (err) {
       $('progress').hidden = true;
       var canceled = err && (err.name === 'ConversionCanceledError' || (M.ConversionCanceledError && err instanceof M.ConversionCanceledError));
-      if (!canceled) showError('Compression stopped. ' + (err && err.message ? err.message : 'Please try another setting.'));
+      if (!canceled) showError('Compression stopped before it finished. ' + (err && err.message ? err.message + ' ' : '') + 'Try a smaller setting, or reload the page and try again.');
     } finally {
       state.busy = false; state.conv = null;
       try { input.dispose && input.dispose(); } catch (e) {}

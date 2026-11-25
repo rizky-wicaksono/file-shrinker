@@ -17,75 +17,94 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <title>File Shrinker</title>
 <link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="theme.css">
+<meta name="theme-color" content="#0a0a0a">
 <style>
-:root {
-  --bg: #F5F6F6;
-  --surface: #FFFFFF;
-  --line: #D9DDDD;
-  --fg: #141A1A;
-  --muted: #5B6666;
-  --head: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --c-video: #0A7B70;
-  --c-audio: #3B4FD8;
-  --c-pdf: #C9402A;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0F1313;
-    --surface: #181E1E;
-    --line: #2D3838;
-    --fg: #ECF0F0;
-    --muted: #9AA8A8;
-    --c-video: #3CCFB4;
-    --c-audio: #8FA2FF;
-    --c-pdf: #FF8A6E;
-    color-scheme: dark;
-  }
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5;
-  padding: 40px max(16px, env(safe-area-inset-right, 0px)) 56px max(16px, env(safe-area-inset-left, 0px));
-}
-.wrap { max-width: 760px; margin: 0 auto; }
-h1 { font-family: var(--head); font-weight: 700; font-size: clamp(2rem, 6vw, 2.8rem); letter-spacing: -0.02em; line-height: 1.05; margin: 0 0 10px; }
-.lead { margin: 0 0 28px; color: var(--muted); max-width: 56ch; }
-.tools { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.tools { display: grid; gap: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 36px; }
 .tool {
-  display: grid; gap: 6px; align-content: start; padding: 20px; text-decoration: none; color: inherit;
-  background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 12px;
+  display: flex; flex-direction: column; gap: 6px; padding: 24px; text-decoration: none; color: inherit;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  transition: transform .18s, box-shadow .18s, border-color .18s;
 }
-.tool:hover { border-color: var(--c); }
-.tool:focus-visible { outline: 2px solid var(--c); outline-offset: 3px; }
-.tool b { font-family: var(--head); font-size: 1.25rem; }
-.tool span { color: var(--muted); font-size: 0.9rem; }
-.tool em { font-style: normal; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c); }
-.foot { margin: 28px 0 0; color: var(--muted); font-size: 0.88rem; }
-.back { display: inline-block; margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); text-decoration: none; }
-.back:hover { color: var(--fg); text-decoration: underline; }
-.credit { margin: 36px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
-.credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-.credit a:hover { color: var(--fg); }
+.tool:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,.08); border-color: var(--fg); }
+.ico { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--cta); color: var(--cta-ink); margin-bottom: 10px; }
+.ico svg { width: 24px; height: 24px; }
+.kind { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.name { font-size: 22px; font-weight: 800; letter-spacing: -0.015em; line-height: 1.25; }
+.desc { color: var(--fg); opacity: .85; font-size: 16px; }
+.best { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+.go { margin-top: auto; font-weight: 800; font-size: 15px; }
+.go::after { content: " →"; color: var(--accent); }
+.how { display: grid; gap: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none; margin: 48px 0 0; padding: 28px 0 0; border-top: 2px solid var(--fg); counter-reset: s; }
+.how li { counter-increment: s; }
+.how li::before { content: counter(s); display: block; font-size: 40px; font-weight: 800; line-height: 1; letter-spacing: -0.04em; color: var(--accent); margin-bottom: 10px; }
+.how b { display: block; font-size: 17px; margin-bottom: 4px; }
+.how span { color: var(--muted); font-size: 15px; }
+@media (max-width: 860px) { .tools { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .tools, .how { grid-template-columns: 1fr; } .tools { margin-top: 28px; } .how { margin-top: 36px; } }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
 <body>
-<div class="wrap">
+<a class="skip" href="#main">Skip to the tools</a>
+<header class="sitebar"><div class="wrap">
+  <a class="brand" href="https://rizky-wicaksono.github.io/"><i aria-hidden="true"></i>Rizky Wicaksono</a>
+  <nav aria-label="Main"><ul>
+    <li><a href="https://rizky-wicaksono.github.io/tools/">Tools</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/#work">Work</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/guides/">PR Guides</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/#contact">Contact</a></li>
+  </ul></nav>
+</div></header>
+<div class="hero"><div class="wrap">
+  <a class="crumb" href="https://rizky-wicaksono.github.io/tools/">← All tools</a>
   <h1>File Shrinker</h1>
-  <p class="lead">Make videos, audio recordings and PDFs smaller. Everything runs in your own browser, and your files are never uploaded.</p>
+  <p class="lead">Make PDFs, videos and audio recordings small enough to email or upload. Everything runs in your own browser, so your files are never uploaded.</p>
+  <ul class="trust" aria-label="About this tool">
+    <li>Free, no sign-up</li><li>Files stay on your device</li><li>Works on phone and laptop</li>
+  </ul>
+</div></div>
+<main id="main" class="wrap">
+  <h2 class="sr-only">Pick a tool</h2>
   <div class="tools">
-    <a class="tool" href="video.html" style="--c: var(--c-video)">
-      <em>Video</em><b>MP4 Compressor</b><span>Pick a resolution and quality, or a target size such as 25 MB.</span>
+    <a class="tool" href="pdf.html">
+      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14h6M9 17.5h4"/></svg></span>
+      <span class="kind">PDF</span>
+      <span class="name">PDF Compressor</span>
+      <span class="desc">Shrink heavy slide decks to fit an email, with text kept sharp and searchable.</span>
+      <span class="best">Best for decks, press kits, scans</span>
+      <span class="go">Open PDF tool</span>
     </a>
-    <a class="tool" href="audio.html" style="--c: var(--c-audio)">
-      <em>Audio</em><b>M4A Compressor</b><span>Shrink voice recordings, podcasts and songs to a compact M4A file.</span>
+    <a class="tool" href="video.html">
+      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3z"/></svg></span>
+      <span class="kind">Video</span>
+      <span class="name">MP4 Compressor</span>
+      <span class="desc">Pick a resolution and quality, or aim for a size such as 25 MB.</span>
+      <span class="best">Best for event clips, interviews, screen recordings</span>
+      <span class="go">Open MP4 tool</span>
     </a>
-    <a class="tool" href="pdf.html" style="--c: var(--c-pdf)">
-      <em>PDF</em><b>PDF Compressor</b><span>Shrink heavy slide decks to fit an email. Text stays searchable.</span>
+    <a class="tool" href="audio.html">
+      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9v6M10 5v14M13.5 8v8M17 10.5v3"/></svg></span>
+      <span class="kind">Audio</span>
+      <span class="name">M4A Compressor</span>
+      <span class="desc">Turn long recordings into a compact M4A file that is easy to send.</span>
+      <span class="best">Best for interviews, podcasts, voice notes</span>
+      <span class="go">Open M4A tool</span>
     </a>
   </div>
-  <p class="foot">Everything the tools need is stored on this site. Your files stay in your browser and are never sent anywhere.</p>
-  <footer class="credit">Made by <a href="https://rizky-wicaksono.github.io">Rizky Wicaksono</a>, public relations engineer. Free to use, nothing is uploaded. <a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a>.</footer>
-</div>
+  <ol class="how" aria-label="How it works">
+    <li><b>Choose a file</b><span>Drop it in or pick it from your device. It is read right here in the browser.</span></li>
+    <li><b>Pick the result</b><span>Aim for a size like 18 MB for email, or choose the quality yourself.</span></li>
+    <li><b>Save the smaller file</b><span>Check the preview, then save. Nothing is sent anywhere.</span></li>
+  </ol>
+</main>
+<footer class="sitefoot"><div class="wrap">
+  <p>File Shrinker is made by <a href="https://rizky-wicaksono.github.io/">Rizky Wicaksono</a>, public relations engineer. Free to use. Your files never leave this browser.</p>
+  <ul>
+    <li><a href="https://rizky-wicaksono.github.io/tools/">All tools</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/">Portfolio</a></li>
+    <li><a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a></li>
+  </ul>
+</div></footer>
 </body>
 </html>

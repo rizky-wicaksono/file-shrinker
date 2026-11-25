@@ -17,65 +17,9 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <title>PDF Compressor</title>
 <link rel="stylesheet" href="fonts/fonts.css">
+<meta name="theme-color" content="#0a0a0a">
 <style>
 /* Layout: source and settings in one column, sticky estimate and result panel beside it; stacks on phones. */
-:root {
-  --bg: #F6F5F3;
-  --surface: #FFFFFF;
-  --sunk: #EDEBE7;
-  --line: #DBD8D1;
-  --fg: #1B1A18;
-  --muted: #6A665E;
-  --accent: #C9402A;
-  --accent-ink: #FFFFFF;
-  --accent-soft: #F8E1DB;
-  --warn: #8A4E00;
-  --warn-soft: #FBEFD8;
-  --info: #3F4A5C;
-  --info-soft: #E6EAF1;
-  --danger: #B3261E;
-  --danger-soft: #FCE8E6;
-  --head: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #151412;
-    --surface: #1E1C1A;
-    --sunk: #2A2724;
-    --line: #3A3631;
-    --fg: #EEEBE5;
-    --muted: #A39E94;
-    --accent: #FF8A6E;
-    --accent-ink: #2B0D06;
-    --accent-soft: #3A1E17;
-    --warn: #E8B15A;
-    --warn-soft: #2D2312;
-    --info: #B6C3DA;
-    --info-soft: #222936;
-    --danger: #FF9A90;
-    --danger-soft: #331A18;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #151412;
-  --surface: #1E1C1A;
-  --sunk: #2A2724;
-  --line: #3A3631;
-  --fg: #EEEBE5;
-  --muted: #A39E94;
-  --accent: #FF8A6E;
-  --accent-ink: #2B0D06;
-  --accent-soft: #3A1E17;
-  --warn: #E8B15A;
-  --warn-soft: #2D2312;
-  --info: #B6C3DA;
-  --info-soft: #222936;
-  --danger: #FF9A90;
-  --danger-soft: #331A18;
-  color-scheme: dark;
-}
 
 * { box-sizing: border-box; }
 body {
@@ -177,25 +121,33 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
 .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .chip:disabled { opacity: .45; cursor: not-allowed; }
 .setting[hidden] { display: none; }
-.back { display: inline-block; margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); text-decoration: none; }
-.back:hover { color: var(--fg); text-decoration: underline; }
-.credit { margin: 36px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
-.credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-.credit a:hover { color: var(--fg); }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 <script src="lib/pdf.min.js"></script>
 <script src="lib/pdf-lib.min.js"></script>
 
+<a class="skip" href="#main">Skip to the tool</a>
+<header class="sitebar"><div class="wrap">
+  <a class="brand" href="https://rizky-wicaksono.github.io/"><i aria-hidden="true"></i>Rizky Wicaksono</a>
+  <nav aria-label="Main"><ul>
+    <li><a href="https://rizky-wicaksono.github.io/tools/">Tools</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/#work">Work</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/guides/">PR Guides</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/#contact">Contact</a></li>
+  </ul></nav>
+</div></header>
+<div class="hero"><div class="wrap">
+  <a class="crumb" href="index.html">← File Shrinker</a>
+  <h1>PDF Compressor</h1>
+  <p class="lead">Make a PDF smaller so it fits an email or an upload limit. Built for heavy slide decks. Compression runs in this browser tab, and the file never leaves your device.</p>
+    <ul class="trust" aria-label="About this tool">
+      <li>Free, no sign-up</li><li>Files stay on your device</li><li>PDF in, PDF out</li>
+    </ul>
+</div></div>
 <div class="wrap">
-  <header>
-    <a class="back" href="index.html">← All tools</a>
-    <h1>PDF Compressor</h1>
-    <p class="lead">Make a PDF smaller so it fits an email or an upload limit. Built for heavy slide decks. Compression runs in this browser tab, and the file never leaves your device.</p>
-  </header>
-
-  <main class="grid">
+  <main class="grid" id="main">
     <div class="col">
       <section class="panel" aria-labelledby="h-source">
         <h2 id="h-source">1. Your PDF</h2>
@@ -260,7 +212,7 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
     </div>
 
     <aside class="panel side" aria-labelledby="h-est">
-      <div class="estlabel"><h2 id="h-est">Estimated result</h2><span class="tag" id="estTag">Example</span></div>
+      <div class="estlabel"><h2 id="h-est">3. Estimate and compress</h2><span class="tag" id="estTag">Example</span></div>
       <p class="big" id="estSize">—</p>
       <p class="sub" id="estSub"></p>
       <div class="bar" aria-hidden="true"><i id="estBar"></i></div>
@@ -287,8 +239,15 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
       </div>
     </aside>
   </main>
-  <footer class="credit">Made by <a href="https://rizky-wicaksono.github.io">Rizky Wicaksono</a>, public relations engineer. Free to use, nothing is uploaded. <a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a>.</footer>
 </div>
+<footer class="sitefoot"><div class="wrap">
+  <p>File Shrinker is made by <a href="https://rizky-wicaksono.github.io/">Rizky Wicaksono</a>, public relations engineer. Free to use. Your files never leave this browser.</p>
+  <ul>
+    <li><a href="https://rizky-wicaksono.github.io/tools/">All tools</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/">Portfolio</a></li>
+    <li><a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a></li>
+  </ul>
+</div></footer>
 
 <script>
 (function () {
@@ -872,7 +831,7 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
         (pct <= 0 ? '. Keep the original; this PDF is already compact.' : !fits ? (method === 'text' ? '. Try “Pages as pictures”, or split the deck.' : '. Try splitting the PDF.') : '.');
       $('result').hidden = false; $('saveNote').textContent = '';
     } catch (err) {
-      $('progress').hidden = true; showError('Compression stopped. ' + (err && err.message ? err.message : 'Please try another setting.'));
+      $('progress').hidden = true; showError('Compression stopped before it finished. ' + (err && err.message ? err.message + ' ' : '') + 'Try a smaller setting, or reload the page and try again.');
     } finally { state.busy = false; render(); }
   }
 

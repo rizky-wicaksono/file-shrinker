@@ -56,7 +56,7 @@ I'm Rizky Wicaksono, a PR consultant based in Jakarta. As a **public relations e
 
 File Shrinker is one of those tools. In PR work you constantly need to send big files: event videos to newsrooms, interview audio to editors, press kits through upload forms that cap at a few megabytes. Most online compressors that do this well are paid, add watermarks, or want your file on their server. So I made a free one that runs entirely in the browser.
 
-More tools and write-ups: **[rizky-wicaksono.github.io](https://rizky-wicaksono.github.io)**
+More tools: **[rizky-wicaksono.github.io/tools](https://rizky-wicaksono.github.io/tools/)**. Write-ups: [rizky-wicaksono.github.io](https://rizky-wicaksono.github.io)
 
 ## Put it online with GitHub Pages
 
@@ -76,13 +76,14 @@ To try it on your own computer, download the repository and run a small local we
 - Video and audio: [Mediabunny](https://github.com/Vanilagy/mediabunny) 1.46.0 with the browser's WebCodecs encoders.
 - PDF: [PDF.js](https://mozilla.github.io/pdf.js/) 3.11.174 to read and render pages, and [pdf-lib](https://pdf-lib.js.org/) 1.17.1 to write the new file.
 - *Keep text* finds every picture in the PDF, decodes it in the browser, scales it down to what the page size needs at the chosen quality (for example 150 dpi for "Balanced"), and saves it as JPEG. Transparency masks stay lossless. A picture is only replaced when the new version is clearly smaller. Text, fonts, vector graphics and links are copied unchanged.
-- Fonts: Inter and Space Grotesk.
+- Look and feel: shared with [rizky-wicaksono.github.io](https://rizky-wicaksono.github.io/). All colours, the font and the header and footer live in `theme.css`, so the style can change in one place. Font: Manrope.
 - Everything is stored in the repository: libraries in `lib/`, fonts in `fonts/`, and their licenses in `licenses/`.
 
 ```
 index.html   video.html   audio.html   pdf.html
+theme.css    shared look: colour tokens, header, footer, buttons
 lib/         pdf.min.js, pdf.worker.min.js, pdf-lib.min.js, mediabunny.min.mjs
-fonts/       fonts.css and six .woff2 files
+fonts/       fonts.css and five Manrope .woff2 files
 licenses/    licenses for the libraries and fonts
 og.png       preview image for links shared on WhatsApp, LinkedIn and so on
 ```
@@ -94,6 +95,7 @@ Done:
 - PDF *Keep text* mode that compresses only the pictures, so decks stay searchable.
 - Target size for PDFs ("under 18 MB"), picking the sharpest setting that fits.
 - Libraries and fonts stored in the repository, with no CDN calls.
+- Same look as the portfolio, listed on its [Tools page](https://rizky-wicaksono.github.io/tools/).
 
 Ideas:
 
