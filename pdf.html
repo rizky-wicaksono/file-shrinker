@@ -3,8 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Shrink heavy slide decks and PDFs to fit an email, with text kept searchable. Runs in your browser; files are never uploaded.">
+<meta name="author" content="Rizky Wicaksono">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="File Shrinker">
+<meta property="og:title" content="PDF Compressor · File Shrinker">
+<meta property="og:description" content="Shrink heavy slide decks and PDFs to fit an email, with text kept searchable. Runs in your browser; files are never uploaded.">
+<meta property="og:url" content="https://rizky-wicaksono.github.io/file-shrinker/pdf.html">
+<meta property="og:image" content="https://rizky-wicaksono.github.io/file-shrinker/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <title>PDF Compressor</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Layout: source and settings in one column, sticky estimate and result panel beside it; stacks on phones. */
 :root {
@@ -155,16 +167,32 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
 .saved { margin: 10px 0 0; font-size: 0.88rem; color: var(--muted); }
 .fine { margin: 16px 0 0; font-size: 0.8rem; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.numwrap { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.numwrap input { width: 90px; font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); }
+.numwrap input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.targetrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.chip { font: inherit; font-size: 0.85rem; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.chip:hover:not(:disabled) { border-color: var(--accent); }
+.chip.on { border-color: var(--accent); background: var(--accent-soft); }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chip:disabled { opacity: .45; cursor: not-allowed; }
+.setting[hidden] { display: none; }
+.back { display: inline-block; margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); text-decoration: none; }
+.back:hover { color: var(--fg); text-decoration: underline; }
+.credit { margin: 36px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+.credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.credit a:hover { color: var(--fg); }
 </style>
 </head>
 <body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="lib/pdf.min.js"></script>
+<script src="lib/pdf-lib.min.js"></script>
 
 <div class="wrap">
   <header>
+    <a class="back" href="index.html">← All tools</a>
     <h1>PDF Compressor</h1>
-    <p class="lead">Make a PDF smaller so it fits an email or an upload limit. Compression runs in this browser tab, and the file never leaves your device.</p>
+    <p class="lead">Make a PDF smaller so it fits an email or an upload limit. Built for heavy slide decks. Compression runs in this browser tab, and the file never leaves your device.</p>
   </header>
 
   <main class="grid">
@@ -175,7 +203,7 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
           <input type="file" id="file" accept="application/pdf,.pdf">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14h6M9 17.5h4"/></svg>
           <strong id="droptitle">Drop a PDF here, or click to choose</strong>
-          <span>Works best for scans, photos and slide decks.</span>
+          <span>Works best for slide decks, press kits, scans and photos.</span>
         </label>
         <p class="engine" id="engine" role="status" aria-live="polite">Loading PDF engine…</p>
 
@@ -193,12 +221,33 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
         <fieldset id="settings">
           <div class="setting">
             <fieldset>
-              <legend>Quality</legend>
-              <div class="seg" id="seg-preset"></div>
-              <p class="note" id="pnote"></p>
+              <legend>Method</legend>
+              <div class="seg" id="seg-method"></div>
+              <p class="note" id="mnote"></p>
             </fieldset>
           </div>
           <div class="setting">
+            <fieldset>
+              <legend>Goal</legend>
+              <div class="seg" id="seg-goal"></div>
+              <div id="g-target">
+                <div class="targetrow">
+                  <label class="numwrap" for="target">Under <input type="number" id="target" min="1" step="1" value="18" inputmode="decimal"> MB</label>
+                </div>
+                <div class="targetrow" id="chips">
+                  <button type="button" class="chip" data-mb="18">Email (18 MB)</button>
+                  <button type="button" class="chip" data-mb="10">10 MB</button>
+                  <button type="button" class="chip" data-mb="5">5 MB</button>
+                </div>
+                <p class="note">Picks the sharpest setting that still fits. Gmail and Outlook count a 25 MB limit after encoding, so about 18 MB is the safe size for an attachment.</p>
+              </div>
+              <div id="g-quality" hidden>
+                <div class="seg" id="seg-preset" style="margin-top:10px"></div>
+                <p class="note" id="pnote"></p>
+              </div>
+            </fieldset>
+          </div>
+          <div class="setting" id="colorset">
             <fieldset>
               <legend>Colour</legend>
               <div class="seg" id="seg-color"></div>
@@ -206,7 +255,7 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
             </fieldset>
           </div>
         </fieldset>
-        <p class="callout">Each page is turned into a picture. Text can no longer be selected or searched, and links stop working. Keep the original if you still need those.</p>
+        <p class="callout" id="callout"></p>
       </section>
     </div>
 
@@ -238,26 +287,43 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
       </div>
     </aside>
   </main>
+  <footer class="credit">Made by <a href="https://rizky-wicaksono.github.io">Rizky Wicaksono</a>, public relations engineer. Free to use, nothing is uploaded. <a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a>.</footer>
 </div>
 
 <script>
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  var WORKER = 'lib/pdf.worker.min.js';
+  var MB = 1e6;
 
-  /* Example profile shown until a real PDF is chosen */
-  var DEMO = { demo: true, pages: 24, w: 595.28, h: 841.89, size: 18.4e6 };
+  /* Example profile shown until a real PDF is chosen: a 24-slide deck, mostly photos */
+  var DEMO = { demo: true, pages: 24, w: 960, h: 540, size: 48.6e6, imgBytes: 44e6, imgCount: 31 };
 
-  var PRESETS = {
-    smallest: { label: 'Smallest', dpi: 72, q: 0.5, note: 'Smallest file. Fine print gets soft, so use it for reading on a screen only.' },
-    small: { label: 'Small', dpi: 100, q: 0.6, note: 'Small file. Body text stays readable on screen.' },
-    balanced: { label: 'Balanced', dpi: 130, q: 0.7, note: 'A good middle. Readable text and clean pictures.' },
-    sharp: { label: 'Sharp', dpi: 170, q: 0.8, note: 'Crisp enough for printing small text. Smaller savings.' }
+  /* Quality levels per method. "tiny" is only used by the target-size search as a last step. */
+  var LEVELS = {
+    text: {
+      sharp: { label: 'Sharp', dpi: 200, q: 0.85, note: 'Pictures stay crisp, even when printed. Smaller savings.' },
+      balanced: { label: 'Balanced', dpi: 150, q: 0.75, note: 'A good middle. Photos look clean on a laptop or projector.' },
+      small: { label: 'Small', dpi: 110, q: 0.65, note: 'Small file. Photos look fine on screen, a bit soft up close.' },
+      smallest: { label: 'Smallest', dpi: 80, q: 0.55, note: 'Smallest file. Photos get soft; text and charts stay sharp.' },
+      tiny: { label: 'Tiny', dpi: 60, q: 0.45 }
+    },
+    image: {
+      sharp: { label: 'Sharp', dpi: 170, q: 0.8, note: 'Crisp enough for printing small text. Smaller savings.' },
+      balanced: { label: 'Balanced', dpi: 130, q: 0.7, note: 'A good middle. Readable text and clean pictures.' },
+      small: { label: 'Small', dpi: 100, q: 0.6, note: 'Small file. Body text stays readable on screen.' },
+      smallest: { label: 'Smallest', dpi: 72, q: 0.5, note: 'Smallest file. Fine print gets soft, so use it for reading on a screen only.' },
+      tiny: { label: 'Tiny', dpi: 60, q: 0.4 }
+    }
   };
-  var state = { file: null, pdf: null, profile: DEMO, preset: 'balanced', color: 'color',
-                busy: false, cancel: false, samples: {}, estToken: 0, estTimer: null,
-                outUrl: null, outBlob: null, thumbUrl: null, outName: '' };
+  var LADDER = ['sharp', 'balanced', 'small', 'smallest', 'tiny'];
+  var PICKABLE = ['smallest', 'small', 'balanced', 'sharp'];
+
+  var state = { file: null, buf: null, pdf: null, lib: null, profile: DEMO,
+                method: 'text', goal: 'target', target: 18, preset: 'balanced', color: 'color',
+                busy: false, cancel: false, samples: {}, imgCache: {}, estToken: 0, estTimer: null,
+                outBlob: null, thumbUrl: null, outName: '' };
   var ready = false, dlPromise;
 
   function fmtSize(b) { if (b >= 1e9) return (b / 1e9).toFixed(2) + ' GB'; if (b >= 1e6) return (b / 1e6).toFixed(b >= 100e6 ? 0 : 1) + ' MB'; return Math.round(b / 1e3) + ' KB'; }
@@ -266,8 +332,13 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
     var a = w / 72 * 25.4, b = h / 72 * 25.4, lo = Math.min(a, b), hi = Math.max(a, b);
     var std = [['A4', 210, 297], ['A3', 297, 420], ['A5', 148, 210], ['Letter', 215.9, 279.4], ['Legal', 215.9, 355.6]];
     for (var i = 0; i < std.length; i++) if (Math.abs(lo - std[i][1]) < 3 && Math.abs(hi - std[i][2]) < 3) return std[i][0] + (a > b ? ' landscape' : '');
+    var r = hi / lo;
+    if (Math.abs(r - 16 / 9) < 0.02) return 'Slide 16:9';
+    if (Math.abs(r - 4 / 3) < 0.02) return 'Slide 4:3';
     return Math.round(a) + ' × ' + Math.round(b) + ' mm';
   }
+  function tick() { return new Promise(function (r) { setTimeout(r, 0); }); }
+  function targetBytes() { var n = Number(state.target); return n > 0 ? n * MB : 0; }
 
   function buildSeg(id, name, opts) {
     var el = $(id);
@@ -282,80 +353,220 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
     var inputs = document.querySelectorAll('input[name="' + name + '"]');
     for (var k = 0; k < inputs.length; k++) { inputs[k].checked = inputs[k].value === state[name]; inputs[k].disabled = state.busy; }
   }
-  buildSeg('seg-preset', 'preset', Object.keys(PRESETS).map(function (k) { return [k, PRESETS[k].label]; }));
+  buildSeg('seg-method', 'method', [['text', 'Keep text (recommended)'], ['image', 'Pages as pictures']]);
+  buildSeg('seg-goal', 'goal', [['target', 'Under a file size'], ['quality', 'Pick quality']]);
+  buildSeg('seg-preset', 'preset', PICKABLE.map(function (k) { return [k, LEVELS.text[k].label]; }));
   buildSeg('seg-color', 'color', [['color', 'Keep colour'], ['gray', 'Black and white']]);
 
-  /* ---------- Estimates ---------- */
-  function key() { return state.preset + '|' + state.color; }
-  function heuristicPerPage(p) {
-    var pr = PRESETS[state.preset], px = (p.w / 72 * pr.dpi) * (p.h / 72 * pr.dpi);
-    return px * 0.3 * pr.q * pr.q * (state.color === 'gray' ? 0.6 : 1);
-  }
-  function plan() {
-    var p = state.profile, pr = PRESETS[state.preset], per = state.samples[key()], sampled = per != null;
-    if (!sampled) per = heuristicPerPage(p);
-    var est = per * p.pages + 4000 + p.pages * 300;
-    var hints = [];
-    if (!p.demo && sampled && est > p.size * 0.95) hints.push(['', 'This PDF is probably mostly text already, so turning it into pictures will not shrink it. Keep the original.']);
-    return { est: est, sampled: sampled, pr: pr, hints: hints };
-  }
+  /* =====================================================================
+     Keep-text method: shrink only the pictures inside the PDF.
+     Text, fonts, vector charts and links are left exactly as they are.
+     ===================================================================== */
+  var PL = window.PDFLib;
+  function N(s) { return PL.PDFName.of(s); }
+  function num(o) { return o && typeof o.asNumber === 'function' ? o.asNumber() : null; }
 
-  /* ---------- Rendering of the UI ---------- */
-  function render() {
-    var p = state.profile, pl = plan();
-    $('fname').textContent = p.demo ? 'Example scan' : state.file.name;
-    $('demoTag').hidden = !p.demo; $('estTag').hidden = !p.demo;
-    $('filecard').className = p.demo ? 'demo' : '';
-    $('droptitle').textContent = p.demo ? 'Drop a PDF here, or click to choose' : 'Choose a different PDF';
-    var facts = [['Size', fmtSize(p.size)], ['Pages', String(p.pages)], ['Page size', pageLabel(p.w, p.h)], ['Per page', fmtSize(p.size / p.pages)]];
-    var fe = $('facts'); fe.textContent = '';
-    facts.forEach(function (f) {
-      var d = document.createElement('div'), dt = document.createElement('dt'), dd = document.createElement('dd');
-      dt.textContent = f[0]; dd.textContent = f[1]; d.appendChild(dt); d.appendChild(dd); fe.appendChild(d);
-    });
-    syncSeg('preset'); syncSeg('color');
-    $('pnote').textContent = pl.pr.note + ' (' + pl.pr.dpi + ' dpi, JPEG ' + Math.round(pl.pr.q * 100) + ')';
-
-    var waiting = !p.demo && !pl.sampled;
-    $('estSize').textContent = waiting ? 'Estimating…' : '≈ ' + fmtSize(pl.est);
-    if (waiting) { $('estSub').textContent = 'Testing a few pages.'; $('estBar').style.width = '0%'; }
-    else {
-      var pct = Math.round((1 - pl.est / p.size) * 100);
-      $('estSub').textContent = pct > 0 ? pct + '% smaller than ' + fmtSize(p.size) : 'No savings expected from ' + fmtSize(p.size);
-      $('estBar').style.width = Math.max(2, Math.min(100, pl.est / p.size * 100)) + '%';
+  function colorComps(dict, ctx) {
+    var cs = dict.lookup(N('ColorSpace'));
+    if (!cs) return 0;
+    if (cs === N('DeviceRGB') || cs === N('CalRGB')) return 3;
+    if (cs === N('DeviceGray') || cs === N('CalGray')) return 1;
+    if (cs instanceof PL.PDFArray && cs.size() >= 2) {
+      var kind = cs.lookup(0);
+      if (kind === N('CalRGB')) return 3;
+      if (kind === N('CalGray')) return 1;
+      if (kind === N('ICCBased')) {
+        var icc = cs.lookup(1);
+        var n = icc && icc.dict ? num(icc.dict.lookup(N('N'))) : null;
+        return n === 3 || n === 1 ? n : 0;
+      }
     }
-    $('origCap').textContent = 'Original ' + fmtSize(p.size);
-    $('spec').textContent = p.pages + ' pages · ' + pl.pr.dpi + ' dpi · ' + (state.color === 'gray' ? 'black and white' : 'colour');
-    var he = $('hints'); he.textContent = '';
-    pl.hints.forEach(function (h) { var el = document.createElement('p'); el.className = 'hint' + (h[0] ? ' ' + h[0] : ''); el.textContent = h[1]; he.appendChild(el); });
-    var go = $('go'); go.textContent = p.demo ? 'Choose a PDF' : 'Compress PDF';
-    go.disabled = state.busy || (!p.demo && !ready);
-    $('drop').classList.toggle('locked', state.busy); $('file').disabled = state.busy;
+    return 0; /* CMYK, Indexed, Lab, Separation…: left alone */
+  }
+  /* Filters as a list. Supported: an optional ASCII85 or Flate wrapper, then DCT (JPEG) or Flate. */
+  function filterChain(dict) {
+    var f = dict.lookup(N('Filter')), out = [];
+    if (f instanceof PL.PDFArray) { for (var i = 0; i < f.size(); i++) out.push(f.lookup(i)); }
+    else if (f) out.push(f);
+    return out;
+  }
+  function identityDecode(d) {
+    var a = d.lookup(N('Decode'));
+    if (!a) return true;
+    if (!(a instanceof PL.PDFArray)) return false;
+    for (var i = 0; i < a.size(); i++) if (num(a.lookup(i)) !== (i % 2 ? 1 : 0)) return false;
+    return true;
+  }
+  function ascii85(u8) {
+    var out = [], n = 0, cnt = 0, i = 0;
+    if (u8[0] === 60 && u8[1] === 126) i = 2; /* optional <~ */
+    for (; i < u8.length; i++) {
+      var c = u8[i];
+      if (c === 126) break; /* ~> */
+      if (c <= 32) continue;
+      if (c === 122 && cnt === 0) { out.push(0, 0, 0, 0); continue; }
+      n = n * 85 + (c - 33); cnt++;
+      if (cnt === 5) { out.push((n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255); n = 0; cnt = 0; }
+    }
+    if (cnt > 1) { for (var k = cnt; k < 5; k++) n = n * 85 + 84; for (var m = 0; m < cnt - 1; m++) out.push((n >>> (24 - m * 8)) & 255); }
+    return new Uint8Array(out);
   }
 
-  /* ---------- Engine ---------- */
-  function loadScript(src) { return new Promise(function (res, rej) { var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
-  var engineP;
-  if (!window.pdfjsLib || !window.PDFLib) {
-    $('engine').className = 'engine bad'; $('engine').textContent = 'The PDF engine could not load. Check your connection and reload the page.';
-    engineP = Promise.resolve(false);
-  } else {
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER;
-    engineP = loadScript(WORKER).then(function () { return true; }, function () { return true; }).then(function (ok) {
-      ready = true; var e = $('engine'); e.textContent = 'Ready.';
-      setTimeout(function () { if (e.textContent === 'Ready.') e.textContent = ''; }, 2500);
-      render(); return ok;
+  /* List every picture in the file and decide which ones can be shrunk safely */
+  function findImages(doc) {
+    var ctx = doc.context, list = [], masks = {};
+    ctx.enumerateIndirectObjects().forEach(function (e) {
+      var obj = e[1];
+      if (!(obj instanceof PL.PDFRawStream)) return;
+      var d = obj.dict;
+      if (d.lookup(N('Subtype')) !== N('Image')) return;
+      var sm = d.get(N('SMask'));
+      if (sm instanceof PL.PDFRef) masks[sm.toString()] = true;
+      list.push({ ref: e[0], key: e[0].toString(), stream: obj, size: obj.contents.length });
     });
+    var pageMax = 0;
+    doc.getPages().forEach(function (p) { var s = p.getSize(); pageMax = Math.max(pageMax, s.width, s.height); });
+    list.forEach(function (it) {
+      var d = it.stream.dict, ch = filterChain(d), f = ch[ch.length - 1];
+      it.pre = ch.slice(0, -1);
+      it.w = num(d.lookup(N('Width'))); it.h = num(d.lookup(N('Height')));
+      it.isMask = !!masks[it.key];
+      it.comps = colorComps(d);
+      it.kind = f === N('DCTDecode') ? 'dct' : f === N('FlateDecode') ? 'flate' : null;
+      var bpc = num(d.lookup(N('BitsPerComponent')));
+      var ok = it.kind && it.w > 0 && it.h > 0 && it.size > 20000 &&
+               d.lookup(N('ImageMask')) !== PL.PDFBool.True && identityDecode(d) && !d.lookup(N('Matte')) &&
+               it.pre.every(function (x) { return x === N('ASCII85Decode') || (x === N('FlateDecode') && f === N('DCTDecode')); }) &&
+               !(d.lookup(N('Mask')) instanceof PL.PDFArray) && bpc === 8;
+      if (ok && it.isMask) ok = it.kind === 'flate' && it.comps === 1;
+      if (ok && !it.isMask) ok = it.comps === 3 || it.comps === 1;
+      if (ok && it.kind === 'flate') {
+        var dp = d.lookup(N('DecodeParms')); if (dp instanceof PL.PDFArray) dp = dp.lookup(0);
+        var pred = dp && dp.lookup ? num(dp.lookup(N('Predictor'))) : null;
+        it.predictor = pred || 1;
+        if (it.predictor !== 1 && it.predictor < 10) ok = false; /* TIFF predictor: rare, skip */
+      }
+      it.eligible = !!ok;
+    });
+    return { images: list, pageMax: pageMax || 792 };
   }
-  dlPromise = (window.claude && window.claude.use) ? window.claude.use('downloads').then(function (d) { return d; }, function () { return null; }) : Promise.resolve(null);
 
-  /* ---------- Page to JPEG ---------- */
-  async function renderPage(page, pr, gray) {
+  async function streamBytes(u8, ctor) {
+    var s = new Blob([u8]).stream().pipeThrough(new ctor('deflate'));
+    return new Uint8Array(await new Response(s).arrayBuffer());
+  }
+  function unpredictPNG(data, colors, w) {
+    var rb = colors * w, rows = Math.floor(data.length / (rb + 1)), out = new Uint8Array(rows * rb), prev = new Uint8Array(rb);
+    for (var y = 0; y < rows; y++) {
+      var t = data[y * (rb + 1)], src = y * (rb + 1) + 1, row = out.subarray(y * rb, y * rb + rb);
+      for (var x = 0; x < rb; x++) {
+        var raw = data[src + x], a = x >= colors ? row[x - colors] : 0, b = prev[x], c = x >= colors ? prev[x - colors] : 0, v;
+        if (t === 0) v = raw; else if (t === 1) v = raw + a; else if (t === 2) v = raw + b; else if (t === 3) v = raw + ((a + b) >> 1);
+        else if (t === 4) { var p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c); v = raw + (pa <= pb && pa <= pc ? a : pb <= pc ? b : c); }
+        else throw new Error('bad predictor');
+        row[x] = v & 255;
+      }
+      prev = row;
+    }
+    return out;
+  }
+  function canvasOf(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+
+  /* Undo wrapper filters (ASCII85, Flate) so only the image encoding is left */
+  async function unwrap(it) {
+    var b = it.stream.contents;
+    for (var i = 0; i < it.pre.length; i++) b = it.pre[i] === N('ASCII85Decode') ? ascii85(b) : await streamBytes(b, DecompressionStream);
+    return b;
+  }
+  /* Decode one picture to a canvas at its original size */
+  async function decodeImage(it) {
+    var body = await unwrap(it);
+    if (it.kind === 'dct') return await createImageBitmap(new Blob([body], { type: 'image/jpeg' }));
+    var raw = await streamBytes(body, DecompressionStream);
+    if (it.predictor >= 10) raw = unpredictPNG(raw, it.comps, it.w);
+    var w = it.w, h = it.h, n = w * h;
+    if (raw.length < n * it.comps) throw new Error('short image data');
+    var c = canvasOf(w, h), ctx = c.getContext('2d'), id = ctx.createImageData(w, h), d = id.data;
+    for (var i = 0, j = 0; i < n; i++) {
+      if (it.comps === 3) { d[i * 4] = raw[j]; d[i * 4 + 1] = raw[j + 1]; d[i * 4 + 2] = raw[j + 2]; j += 3; }
+      else { d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = raw[j++]; }
+      d[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(id, 0, 0);
+    return c;
+  }
+
+  /* Shrink one picture for a level. Returns null when it would not get smaller. */
+  async function shrinkImage(it, lv, pageMax) {
+    var maxSide = Math.max(64, Math.round(pageMax / 72 * lv.dpi));
+    var scale = Math.min(1, maxSide / Math.max(it.w, it.h));
+    if (it.kind === 'flate' && it.isMask && scale > 0.95) return null;
+    var src = await decodeImage(it);
+    var w = Math.max(1, Math.round(it.w * scale)), h = Math.max(1, Math.round(it.h * scale));
+    var c = canvasOf(w, h), ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(src, 0, 0, w, h);
+    if (src.close) src.close(); else { src.width = 0; src.height = 0; }
+    var bytes, kind;
+    if (it.isMask) {
+      var px = ctx.getImageData(0, 0, w, h).data, g = new Uint8Array(w * h);
+      for (var i = 0; i < g.length; i++) g[i] = px[i * 4];
+      bytes = await streamBytes(g, CompressionStream); kind = 'flate';
+    } else {
+      var blob = await new Promise(function (r) { c.toBlob(r, 'image/jpeg', lv.q); });
+      bytes = new Uint8Array(await blob.arrayBuffer()); kind = 'dct';
+    }
+    c.width = 0; c.height = 0;
+    if (bytes.length > it.size * 0.9) return null;
+    return { bytes: bytes, w: w, h: h, kind: kind };
+  }
+
+  async function shrinkCached(it, lvKey) {
+    var cache = state.imgCache[lvKey] || (state.imgCache[lvKey] = {});
+    if (!(it.key in cache)) {
+      try { cache[it.key] = await shrinkImage(it, LEVELS.text[lvKey], state.lib.pageMax); }
+      catch (e) { cache[it.key] = null; }
+    }
+    return cache[it.key];
+  }
+
+  /* Predicted output size for a level, from the results computed so far */
+  function predictText(lvKey, items) {
+    var cache = state.imgCache[lvKey] || {}, saved = 0;
+    items.forEach(function (it) { var r = cache[it.key]; if (r) saved += it.size - r.bytes.length; });
+    return state.profile.size - saved;
+  }
+
+  /* Write a new PDF with the shrunk pictures swapped in */
+  async function assembleText(lvKey) {
+    var doc = await PL.PDFDocument.load(state.buf, { updateMetadata: false });
+    var ctx = doc.context, cache = state.imgCache[lvKey] || {}, swapped = 0;
+    ctx.enumerateIndirectObjects().forEach(function (e) {
+      var r = cache[e[0].toString()];
+      if (!r || !(e[1] instanceof PL.PDFRawStream)) return;
+      var d = e[1].dict.clone(ctx);
+      d.set(N('Width'), PL.PDFNumber.of(r.w)); d.set(N('Height'), PL.PDFNumber.of(r.h));
+      d.set(N('BitsPerComponent'), PL.PDFNumber.of(8));
+      d.set(N('Filter'), N(r.kind === 'dct' ? 'DCTDecode' : 'FlateDecode'));
+      d.delete(N('DecodeParms')); d.delete(N('DL')); d.delete(N('Decode'));
+      if (r.kind === 'dct' && colorComps(e[1].dict) !== 3) d.set(N('ColorSpace'), N('DeviceRGB'));
+      ctx.assign(e[0], PL.PDFRawStream.of(d, r.bytes));
+      swapped++;
+    });
+    var bytes = await doc.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false });
+    return { blob: new Blob([bytes], { type: 'application/pdf' }), swapped: swapped };
+  }
+
+  /* =====================================================================
+     Pages-as-pictures method (for scans): every page becomes one JPEG.
+     ===================================================================== */
+  async function renderPage(page, lv, gray) {
     var v1 = page.getViewport({ scale: 1 });
-    var scale = pr.dpi / 72, px = v1.width * scale * v1.height * scale, maxPx = 14e6;
+    var scale = lv.dpi / 72, px = v1.width * scale * v1.height * scale, maxPx = 14e6;
     if (px > maxPx) scale *= Math.sqrt(maxPx / px);
     var vp = page.getViewport({ scale: scale });
-    var c = document.createElement('canvas'); c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+    var c = canvasOf(Math.ceil(vp.width), Math.ceil(vp.height));
     var ctx = c.getContext('2d', { willReadFrequently: !!gray });
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
@@ -364,33 +575,204 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
       for (var i = 0; i < d.length; i += 4) { var y = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) | 0; d[i] = d[i + 1] = d[i + 2] = y; }
       ctx.putImageData(id, 0, 0);
     }
-    var blob = await new Promise(function (r) { c.toBlob(r, 'image/jpeg', pr.q); });
+    var blob = await new Promise(function (r) { c.toBlob(r, 'image/jpeg', lv.q); });
     c.width = 0; c.height = 0; page.cleanup();
     return { blob: blob, w: v1.width, h: v1.height };
   }
-  function tick() { return new Promise(function (r) { setTimeout(r, 0); }); }
+  function heuristicPerPage(p, lvKey) {
+    var lv = LEVELS.image[lvKey], px = (p.w / 72 * lv.dpi) * (p.h / 72 * lv.dpi);
+    return px * 0.3 * lv.q * lv.q * (state.color === 'gray' ? 0.6 : 1);
+  }
+  function predictImage(lvKey) {
+    var p = state.profile, per = state.samples[lvKey + '|' + state.color];
+    if (per == null) per = heuristicPerPage(p, lvKey);
+    return per * p.pages + 4000 + p.pages * 300;
+  }
+  async function assembleImage(lvKey, onPage) {
+    var p = state.profile, lv = LEVELS.image[lvKey], gray = state.color === 'gray';
+    var out = await PL.PDFDocument.create();
+    for (var i = 1; i <= p.pages; i++) {
+      if (state.cancel) return null;
+      var r = await renderPage(await state.pdf.getPage(i), lv, gray);
+      var img = await out.embedJpg(new Uint8Array(await r.blob.arrayBuffer()));
+      out.addPage([r.w, r.h]).drawImage(img, { x: 0, y: 0, width: r.w, height: r.h });
+      onPage(i); await tick();
+    }
+    var bytes = await out.save({ useObjectStreams: true });
+    return { blob: new Blob([bytes], { type: 'application/pdf' }) };
+  }
 
-  /* Sample up to 3 pages to estimate the whole file */
+  /* =====================================================================
+     Estimates
+     ===================================================================== */
+  /* Pictures are grouped by type (JPEG photos, lossless pictures, transparency masks), because each type shrinks differently */
+  function groupOf(it) { return it.isMask ? 'mask' : it.kind; }
+  function groups() {
+    var g = {};
+    if (!state.lib) return g;
+    state.lib.images.forEach(function (it) { if (it.eligible) (g[groupOf(it)] = g[groupOf(it)] || []).push(it); });
+    Object.keys(g).forEach(function (k) { g[k].sort(function (a, b) { return b.size - a.size; }); });
+    return g;
+  }
+  function sampleItems() {
+    var g = groups(), out = [];
+    Object.keys(g).forEach(function (k) { out = out.concat(g[k].slice(0, 3)); });
+    return out;
+  }
+  /* Estimate for a level from the sampled pictures, scaled to all pictures */
+  function estimateText(lvKey) {
+    var p = state.profile;
+    if (p.demo) { var r0 = { sharp: 0.45, balanced: 0.25, small: 0.14, smallest: 0.08, tiny: 0.05 }[lvKey]; return p.size - p.imgBytes * (1 - r0); }
+    var g = groups(), smp = sampleItems(), cache = state.imgCache[lvKey], saved = 0;
+    if (!smp.length) return p.size;
+    if (!cache || smp.some(function (it) { return !(it.key in cache); })) return null;
+    Object.keys(g).forEach(function (k) {
+      var o = 0, n = 0, total = 0;
+      g[k].slice(0, 3).forEach(function (it) { o += it.size; n += cache[it.key] ? cache[it.key].bytes.length : it.size; });
+      g[k].forEach(function (it) { total += it.size; });
+      saved += total * (1 - n / o);
+    });
+    return p.size - saved;
+  }
+  function estimateFor(lvKey) { return state.method === 'text' ? estimateText(lvKey) : predictImage(lvKey); }
+  function sampledFor(lvKey) { return state.method === 'text' ? estimateText(lvKey) != null : state.profile.demo || state.samples[lvKey + '|' + state.color] != null; }
+
+  /* Which level the target search will most likely land on */
+  function pickLevel() {
+    var t = targetBytes();
+    for (var i = 0; i < LADDER.length; i++) {
+      var e = estimateFor(LADDER[i]); if (e == null) return null;
+      if (e <= t * 0.97) return LADDER[i];
+    }
+    return 'tiny';
+  }
+  function levelsToSample() { return state.goal === 'target' ? LADDER : [state.preset]; }
+
+  function plan() {
+    var p = state.profile, hints = [], lvKey, est, sampled;
+    if (state.goal === 'target') {
+      lvKey = pickLevel(); sampled = lvKey != null;
+      est = sampled ? estimateFor(lvKey) : null;
+      if (!p.demo && targetBytes() >= p.size) hints.push(['', 'This PDF is already under ' + fmtSize(targetBytes()) + '. To make it smaller still, lower the target or choose “Pick quality”.']);
+      if (sampled && est > targetBytes()) hints.push(['bad', 'Even the smallest setting gives about ' + fmtSize(est) + '. ' +
+        (state.method === 'text' ? 'Try “Pages as pictures”, or split the deck into two files.' : 'Split the PDF into two files.')]);
+    } else {
+      lvKey = state.preset; sampled = sampledFor(lvKey); est = sampled ? estimateFor(lvKey) : null;
+    }
+    if (!p.demo && state.method === 'text' && state.lib) {
+      var el = state.lib.images.filter(function (it) { return it.eligible; });
+      if (!el.length) hints.push(['', 'This PDF has no pictures this method can shrink. Try “Pages as pictures” if it is a scan.']);
+    }
+    if (!p.demo && state.method === 'image' && sampled && est > p.size * 0.95) hints.push(['', 'This PDF is probably mostly text already, so turning it into pictures will not shrink it. Keep the original.']);
+    return { lvKey: lvKey, est: est, sampled: sampled, hints: hints };
+  }
+
+  /* Sample a few pictures (or pages) so the estimate reflects this file */
   function queueEstimate() {
     clearTimeout(state.estTimer);
-    if (state.profile.demo || !state.pdf || state.busy || state.samples[key()] != null) return;
+    if (state.profile.demo || !state.pdf || state.busy) return;
     var token = ++state.estToken;
     state.estTimer = setTimeout(async function () {
-      var k = key(), n = state.profile.pages, idx = [];
-      [0.2, 0.5, 0.8].forEach(function (f) { var i = Math.min(n, Math.max(1, Math.round(f * n))); if (idx.indexOf(i) < 0) idx.push(i); });
+      var keys = levelsToSample();
       try {
-        var total = 0;
-        for (var j = 0; j < idx.length; j++) {
-          if (token !== state.estToken || state.busy) return;
-          var page = await state.pdf.getPage(idx[j]);
-          var r = await renderPage(page, PRESETS[state.preset], state.color === 'gray');
-          total += r.blob.size; await tick();
+        for (var k = 0; k < keys.length; k++) {
+          if (state.method === 'text') {
+            var smp = sampleItems();
+            for (var j = 0; j < smp.length; j++) {
+              if (token !== state.estToken || state.busy) return;
+              await shrinkCached(smp[j], keys[k]); await tick();
+            }
+          } else {
+            var sk = keys[k] + '|' + state.color;
+            if (state.samples[sk] != null) continue;
+            var n = state.profile.pages, idx = [];
+            [0.2, 0.5, 0.8].forEach(function (f) { var i = Math.min(n, Math.max(1, Math.round(f * n))); if (idx.indexOf(i) < 0) idx.push(i); });
+            var total = 0;
+            for (var m = 0; m < idx.length; m++) {
+              if (token !== state.estToken || state.busy) return;
+              var r = await renderPage(await state.pdf.getPage(idx[m]), LEVELS.image[keys[k]], state.color === 'gray');
+              total += r.blob.size; await tick();
+            }
+            state.samples[sk] = total / idx.length;
+          }
+          if (token === state.estToken) render();
+          if (state.goal === 'target' && pickLevel() === keys[k]) break; /* found the level that fits */
         }
-        if (token !== state.estToken) return;
-        state.samples[k] = total / idx.length; render();
-      } catch (e) { /* leave the heuristic in place */ if (token === state.estToken) { state.samples[k] = heuristicPerPage(state.profile); render(); } }
-    }, 350);
+      } catch (e) { /* keep heuristics */ }
+      if (token === state.estToken) render();
+    }, 300);
   }
+
+  /* =====================================================================
+     UI
+     ===================================================================== */
+  function render() {
+    var p = state.profile, pl = plan(), levels = LEVELS[state.method];
+    $('fname').textContent = p.demo ? 'Example slide deck' : state.file.name;
+    $('demoTag').hidden = !p.demo; $('estTag').hidden = !p.demo;
+    $('filecard').className = p.demo ? 'demo' : '';
+    $('droptitle').textContent = p.demo ? 'Drop a PDF here, or click to choose' : 'Choose a different PDF';
+    var facts = [['Size', fmtSize(p.size)], ['Pages', String(p.pages)], ['Page size', pageLabel(p.w, p.h)]];
+    if (p.imgBytes != null) facts.push(['Pictures', p.imgCount + ' · ' + fmtSize(p.imgBytes)]);
+    else facts.push(['Per page', fmtSize(p.size / p.pages)]);
+    var fe = $('facts'); fe.textContent = '';
+    facts.forEach(function (f) {
+      var d = document.createElement('div'), dt = document.createElement('dt'), dd = document.createElement('dd');
+      dt.textContent = f[0]; dd.textContent = f[1]; d.appendChild(dt); d.appendChild(dd); fe.appendChild(d);
+    });
+    ['method', 'goal', 'preset', 'color'].forEach(syncSeg);
+    $('mnote').textContent = state.method === 'text'
+      ? 'Shrinks only the photos and pictures. Text stays searchable, and links and fonts are kept.'
+      : 'Turns each page into one picture. Best for scans; text can no longer be selected or searched.';
+    $('callout').textContent = state.method === 'text'
+      ? 'Text, charts drawn in the deck, and links are not touched. Only photos and pictures are resized and re-saved.'
+      : 'Each page is turned into a picture. Text can no longer be selected or searched, and links stop working. Keep the original if you still need those.';
+    $('g-target').hidden = state.goal !== 'target'; $('g-quality').hidden = state.goal !== 'quality';
+    $('colorset').hidden = state.method !== 'image';
+    $('target').disabled = state.busy;
+    var chips = document.querySelectorAll('.chip');
+    for (var c = 0; c < chips.length; c++) { chips[c].disabled = state.busy; chips[c].classList.toggle('on', Number(chips[c].getAttribute('data-mb')) === Number(state.target)); }
+    var pr = levels[state.preset];
+    $('pnote').textContent = pr.note + ' (pictures up to ' + pr.dpi + ' dpi, JPEG ' + Math.round(pr.q * 100) + ')';
+
+    var waiting = !p.demo && !pl.sampled;
+    if (waiting) {
+      $('estSize').textContent = 'Estimating…'; $('estSub').textContent = state.method === 'text' ? 'Testing the biggest pictures.' : 'Testing a few pages.';
+      $('estBar').style.width = '0%';
+    } else {
+      $('estSize').textContent = '≈ ' + fmtSize(pl.est);
+      var pct = Math.round((1 - pl.est / p.size) * 100);
+      $('estSub').textContent = pct > 0 ? pct + '% smaller than ' + fmtSize(p.size) : 'No savings expected from ' + fmtSize(p.size);
+      $('estBar').style.width = Math.max(2, Math.min(100, pl.est / p.size * 100)) + '%';
+    }
+    $('origCap').textContent = 'Original ' + fmtSize(p.size);
+    var lvName = pl.lvKey ? levels[pl.lvKey].label : '…';
+    $('spec').textContent = (state.method === 'text' ? 'Keep text' : 'Pages as pictures') + ' · ' +
+      (state.goal === 'target' ? 'under ' + fmtSize(targetBytes()) + ' · likely “' + lvName + '”' : lvName) +
+      (state.method === 'image' ? ' · ' + (state.color === 'gray' ? 'black and white' : 'colour') : '');
+    var he = $('hints'); he.textContent = '';
+    pl.hints.forEach(function (h) { var el = document.createElement('p'); el.className = 'hint' + (h[0] ? ' ' + h[0] : ''); el.textContent = h[1]; he.appendChild(el); });
+    var go = $('go'); go.textContent = p.demo ? 'Choose a PDF' : 'Compress PDF';
+    go.disabled = state.busy || (!p.demo && (!ready || (state.goal === 'target' && !(targetBytes() > 0))));
+    $('drop').classList.toggle('locked', state.busy); $('file').disabled = state.busy;
+  }
+
+  /* ---------- Engine ---------- */
+  function loadScript(src) { return new Promise(function (res, rej) { var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+  var engineP;
+  if (!window.pdfjsLib || !window.PDFLib) {
+    $('engine').className = 'engine bad'; $('engine').textContent = 'The PDF engine could not load. Reload the page and try again.';
+    engineP = Promise.resolve(false);
+  } else {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER;
+    /* Loading the worker script up front lets pdf.js fall back to the main thread when workers are blocked (for example when opened from disk). */
+    engineP = loadScript(WORKER).then(function () { return true; }, function () { return true; }).then(function (ok) {
+      ready = true; var e = $('engine'); e.textContent = 'Ready.';
+      setTimeout(function () { if (e.textContent === 'Ready.') e.textContent = ''; }, 2500);
+      render(); return ok;
+    });
+  }
+  dlPromise = (window.claude && window.claude.use) ? window.claude.use('downloads').then(function (d) { return d; }, function () { return null; }) : Promise.resolve(null);
 
   /* ---------- Reading the chosen PDF ---------- */
   function showError(msg) { var el = document.createElement('p'); el.className = 'hint bad'; el.textContent = msg; $('hints').appendChild(el); }
@@ -406,13 +788,20 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
     await engineP;
     if (!window.pdfjsLib) { eng.className = 'engine bad'; eng.textContent = 'The PDF engine could not load. Reload the page and try again.'; return; }
     try {
-      var buf = await file.arrayBuffer();
-      var pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+      var buf = new Uint8Array(await file.arrayBuffer());
+      /* pdf.js may take ownership of the buffer it gets, so give it a copy */
+      var pdf = await window.pdfjsLib.getDocument({ data: buf.slice() }).promise;
       var first = await pdf.getPage(1), v = first.getViewport({ scale: 1 });
+      var lib = null;
+      try { lib = findImages(await PL.PDFDocument.load(buf, { updateMetadata: false })); } catch (e) { lib = null; }
       if (state.pdf) { try { state.pdf.destroy(); } catch (e) {} }
-      state.pdf = pdf; state.file = file; state.samples = {};
-      state.profile = { demo: false, pages: pdf.numPages, w: v.width, h: v.height, size: file.size };
-      eng.textContent = ''; render(); queueEstimate();
+      state.pdf = pdf; state.file = file; state.buf = buf; state.lib = lib; state.samples = {}; state.imgCache = {};
+      var imgBytes = null, imgCount = null;
+      if (lib) { imgBytes = 0; lib.images.forEach(function (it) { imgBytes += it.size; }); imgCount = lib.images.filter(function (it) { return !it.isMask; }).length; }
+      state.profile = { demo: false, pages: pdf.numPages, w: v.width, h: v.height, size: file.size, imgBytes: imgBytes, imgCount: imgCount };
+      if (!lib && state.method === 'text') { state.method = 'image'; eng.textContent = 'This PDF cannot be edited directly, so it will be compressed as pictures.'; }
+      else eng.textContent = '';
+      render(); queueEstimate();
     } catch (err) {
       eng.className = 'engine bad';
       eng.textContent = err && err.name === 'PasswordException' ? 'This PDF is password protected. Remove the password first, then try again.' : 'Could not read this file. Make sure it is a valid PDF.';
@@ -420,43 +809,71 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
   }
 
   /* ---------- Compression ---------- */
+  async function compressText(lvKey, onImg) {
+    var items = state.lib.images.filter(function (it) { return it.eligible; });
+    for (var i = 0; i < items.length; i++) {
+      if (state.cancel) return null;
+      await shrinkCached(items[i], lvKey); onImg(i + 1, items.length); await tick();
+    }
+    return items;
+  }
+
   async function run() {
     if (state.busy || state.profile.demo || !state.pdf) return;
-    var p = state.profile, pr = PRESETS[state.preset], gray = state.color === 'gray';
+    var p = state.profile, method = state.method;
     resetResult(); clearTimeout(state.estTimer); state.estToken++;
     state.busy = true; state.cancel = false; render();
     $('progress').hidden = false; $('pfill').style.width = '0%'; $('ptext').textContent = 'Starting…';
-    var t0 = performance.now(), firstBlob = null;
+    var t0 = performance.now(), out = null, lvKey, tries = 0;
+    function progress(label, frac) {
+      var el = (performance.now() - t0) / 1000;
+      $('pfill').style.width = (frac * 100).toFixed(1) + '%';
+      $('ptext').textContent = label + (frac > 0.05 && frac < 1 ? ' · about ' + fmtTime(el / frac - el) + ' left' : '');
+    }
     try {
-      var out = await window.PDFLib.PDFDocument.create();
-      for (var i = 1; i <= p.pages; i++) {
-        if (state.cancel) { $('progress').hidden = true; return; }
-        var page = await state.pdf.getPage(i);
-        var r = await renderPage(page, pr, gray);
-        if (i === 1) firstBlob = r.blob;
-        var img = await out.embedJpg(new Uint8Array(await r.blob.arrayBuffer()));
-        var pg = out.addPage([r.w, r.h]); pg.drawImage(img, { x: 0, y: 0, width: r.w, height: r.h });
-        var frac = i / p.pages, el = (performance.now() - t0) / 1000;
-        $('pfill').style.width = (frac * 100).toFixed(1) + '%';
-        $('ptext').textContent = 'Page ' + i + ' of ' + p.pages + (i > 1 ? ' · about ' + fmtTime(el / frac - el) + ' left' : '');
-        await tick();
+      var keys = state.goal === 'target' ? LADDER.slice() : [state.preset];
+      if (state.goal === 'target') { var guess = pickLevel(); if (guess) keys = keys.slice(LADDER.indexOf(guess)); }
+      var t = targetBytes();
+      for (var k = 0; k < keys.length; k++) {
+        lvKey = keys[k]; tries++;
+        var label = (state.goal === 'target' ? 'Trying “' + LEVELS[method][lvKey].label + '” · ' : '');
+        if (method === 'text') {
+          var items = await compressText(lvKey, function (i, n) { progress(label + 'Picture ' + i + ' of ' + n, i / n * 0.9); });
+          if (!items) { $('progress').hidden = true; return; }
+          /* skip writing the file when the prediction is clearly over the target */
+          if (state.goal === 'target' && k < keys.length - 1 && predictText(lvKey, items) > t * 0.98) continue;
+          progress(label + 'Writing the file…', 0.95); await tick();
+          out = await assembleText(lvKey);
+        } else {
+          out = await assembleImage(lvKey, function (i) { progress(label + 'Page ' + i + ' of ' + p.pages, i / p.pages); });
+          if (!out) { $('progress').hidden = true; return; }
+        }
+        if (state.goal !== 'target' || out.blob.size <= t) break;
       }
-      $('ptext').textContent = 'Saving the file…'; await tick();
-      var bytes = await out.save({ useObjectStreams: true });
-      var blob = new Blob([bytes], { type: 'application/pdf' });
+      var blob = out.blob;
       state.outBlob = blob; state.outName = state.file.name.replace(/\.pdf$/i, '') + '-compressed.pdf';
-      state.thumbUrl = URL.createObjectURL(firstBlob); $('thumb').src = state.thumbUrl;
+      /* Preview: page 1 of the new file */
+      try {
+        var prev = await window.pdfjsLib.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
+        var pg = await prev.getPage(1), vp0 = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: 640 / Math.max(vp0.width, vp0.height) });
+        var c = canvasOf(Math.ceil(vp.width), Math.ceil(vp.height)), cx = c.getContext('2d');
+        cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+        await pg.render({ canvasContext: cx, viewport: vp }).promise;
+        var tb = await new Promise(function (r) { c.toBlob(r, 'image/jpeg', 0.85); });
+        state.thumbUrl = URL.createObjectURL(tb); $('thumb').src = state.thumbUrl; prev.destroy();
+      } catch (e) { /* no preview */ }
       var took = (performance.now() - t0) / 1000, pct = Math.round((1 - blob.size / p.size) * 100);
       $('progress').hidden = true;
-      $('rTitle').textContent = pct > 0 ? 'Done. ' + pct + '% smaller.' : 'Done, but not smaller.';
+      var fits = state.goal !== 'target' || blob.size <= t;
+      $('rTitle').textContent = !fits ? 'Done, but still over ' + fmtSize(t) + '.' : pct > 0 ? 'Done. ' + pct + '% smaller.' : 'Done, but not smaller.';
       $('rSizes').textContent = fmtSize(p.size) + '  →  ' + fmtSize(blob.size);
-      $('rMeta').textContent = p.pages + ' pages · ' + pr.dpi + ' dpi · finished in ' + fmtTime(took) +
-        (pct <= 0 ? '. Keep the original; this PDF is already compact.' : '.');
-      $('result').hidden = false;
-      $('save').hidden = false; $('saveNote').textContent = '';
+      $('rMeta').textContent = (method === 'text' ? 'Text kept · ' + (out.swapped || 0) + ' pictures shrunk' : p.pages + ' pages as pictures') +
+        ' · “' + LEVELS[method][lvKey].label + '” · finished in ' + fmtTime(took) +
+        (pct <= 0 ? '. Keep the original; this PDF is already compact.' : !fits ? (method === 'text' ? '. Try “Pages as pictures”, or split the deck.' : '. Try splitting the PDF.') : '.');
+      $('result').hidden = false; $('saveNote').textContent = '';
     } catch (err) {
       $('progress').hidden = true; showError('Compression stopped. ' + (err && err.message ? err.message : 'Please try another setting.'));
-    } finally { state.busy = false; render(); queueEstimate(); }
+    } finally { state.busy = false; render(); }
   }
 
   function plainDownload(blob, name) {
@@ -465,7 +882,6 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
     document.body.appendChild(a); a.click();
     setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e) {} a.remove(); }, 4000);
   }
-
   async function save() {
     if (!state.outBlob) return;
     var note = $('saveNote'), dl = await dlPromise;
@@ -480,7 +896,12 @@ legend { display: block; padding: 0; margin: 0 0 8px; font-weight: 600; font-siz
   /* ---------- Events ---------- */
   document.addEventListener('change', function (e) {
     var t = e.target;
-    if (t && t.type === 'radio' && (t.name === 'preset' || t.name === 'color')) { state[t.name] = t.value; render(); queueEstimate(); }
+    if (t && t.type === 'radio' && ['method', 'goal', 'preset', 'color'].indexOf(t.name) >= 0) { state[t.name] = t.value; resetResult(); render(); queueEstimate(); }
+  });
+  $('target').addEventListener('input', function () { state.target = parseFloat(this.value); render(); queueEstimate(); });
+  var chipEls = document.querySelectorAll('.chip');
+  for (var ci = 0; ci < chipEls.length; ci++) chipEls[ci].addEventListener('click', function () {
+    state.target = Number(this.getAttribute('data-mb')); $('target').value = state.target; render(); queueEstimate();
   });
   $('file').addEventListener('change', function () { var f = this.files && this.files[0]; if (f) analyze(f); this.value = ''; });
   var drop = $('drop');
