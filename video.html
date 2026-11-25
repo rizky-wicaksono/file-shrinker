@@ -17,59 +17,9 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <title>MP4 Compressor</title>
 <link rel="stylesheet" href="fonts/fonts.css">
+<meta name="theme-color" content="#0a0a0a">
 <style>
 /* Layout: settings column on the left, a sticky "result" panel on the right; stacks on phones. */
-:root {
-  --bg: #F3F7F7;
-  --surface: #FFFFFF;
-  --sunk: #E9F0F0;
-  --line: #D5DEDF;
-  --fg: #0E1A1C;
-  --muted: #547074;
-  --accent: #0A7B70;
-  --accent-ink: #FFFFFF;
-  --accent-soft: #DAF0EC;
-  --warn: #8A4E00;
-  --warn-soft: #FBEFD8;
-  --danger: #B3261E;
-  --danger-soft: #FCE8E6;
-  --head: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0B1315;
-    --surface: #111C1F;
-    --sunk: #172629;
-    --line: #25373B;
-    --fg: #E5EEEF;
-    --muted: #8DA4A8;
-    --accent: #3CCFB4;
-    --accent-ink: #04201B;
-    --accent-soft: #123430;
-    --warn: #E8B15A;
-    --warn-soft: #2D2312;
-    --danger: #FF9A90;
-    --danger-soft: #331A18;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0B1315;
-  --surface: #111C1F;
-  --sunk: #172629;
-  --line: #25373B;
-  --fg: #E5EEEF;
-  --muted: #8DA4A8;
-  --accent: #3CCFB4;
-  --accent-ink: #04201B;
-  --accent-soft: #123430;
-  --warn: #E8B15A;
-  --warn-soft: #2D2312;
-  --danger: #FF9A90;
-  --danger-soft: #331A18;
-  color-scheme: dark;
-}
 
 * { box-sizing: border-box; }
 body {
@@ -241,22 +191,30 @@ video { display: block; width: 100%; max-height: 300px; border-radius: 8px; back
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
-.back { display: inline-block; margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); text-decoration: none; }
-.back:hover { color: var(--fg); text-decoration: underline; }
-.credit { margin: 36px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
-.credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-.credit a:hover { color: var(--fg); }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
+<a class="skip" href="#main">Skip to the tool</a>
+<header class="sitebar"><div class="wrap">
+  <a class="brand" href="https://rizky-wicaksono.github.io/"><i aria-hidden="true"></i>Rizky Wicaksono</a>
+  <nav aria-label="Main"><ul>
+    <li><a href="https://rizky-wicaksono.github.io/tools/">Tools</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/#work">Work</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/guides/">PR Guides</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/#contact">Contact</a></li>
+  </ul></nav>
+</div></header>
+<div class="hero"><div class="wrap">
+  <a class="crumb" href="index.html">← File Shrinker</a>
+  <h1>MP4 Compressor</h1>
+  <p class="lead">Make a video smaller so it is easy to email or upload. Compression happens in this browser tab, and the video never leaves your device.</p>
+    <ul class="trust" aria-label="About this tool">
+      <li>Free, no sign-up</li><li>Files stay on your device</li><li>Saves as MP4</li>
+    </ul>
+</div></div>
 <div class="wrap">
-  <header>
-    <a class="back" href="index.html">← All tools</a>
-    <h1>MP4 Compressor</h1>
-    <p class="lead">Make a video smaller so it is easy to email or upload. Compression happens in this browser tab, and the video never leaves your device.</p>
-  </header>
-
-  <main class="grid">
+  <main class="grid" id="main">
     <div class="col">
       <section class="panel" id="source" aria-labelledby="h-source">
         <h2 id="h-source">1. Your video</h2>
@@ -328,7 +286,7 @@ video { display: block; width: 100%; max-height: 300px; border-radius: 8px; back
     </div>
 
     <aside class="panel side" aria-labelledby="h-est">
-      <div class="estlabel"><h2 id="h-est">Estimated result</h2><span class="tag" id="estTag">Example</span></div>
+      <div class="estlabel"><h2 id="h-est">3. Estimate and compress</h2><span class="tag" id="estTag">Example</span></div>
       <p class="big" id="estSize">—</p>
       <p class="sub" id="estSub"></p>
       <div class="bar" aria-hidden="true"><i id="estBar"></i></div>
@@ -354,8 +312,15 @@ video { display: block; width: 100%; max-height: 300px; border-radius: 8px; back
       </div>
     </aside>
   </main>
-  <footer class="credit">Made by <a href="https://rizky-wicaksono.github.io">Rizky Wicaksono</a>, public relations engineer. Free to use, nothing is uploaded. <a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a>.</footer>
 </div>
+<footer class="sitefoot"><div class="wrap">
+  <p>File Shrinker is made by <a href="https://rizky-wicaksono.github.io/">Rizky Wicaksono</a>, public relations engineer. Free to use. Your files never leave this browser.</p>
+  <ul>
+    <li><a href="https://rizky-wicaksono.github.io/tools/">All tools</a></li>
+    <li><a href="https://rizky-wicaksono.github.io/">Portfolio</a></li>
+    <li><a href="https://github.com/rizky-wicaksono/file-shrinker">Source on GitHub</a></li>
+  </ul>
+</div></footer>
 
 <script>
 (function () {
@@ -628,7 +593,7 @@ video { display: block; width: 100%; max-height: 300px; border-radius: 8px; back
       if (!canDecode) showError('This browser may not be able to read this video\'s format (iPhone HEVC videos are a common case). Try Safari or the latest Chrome.');
     } catch (err) {
       eng.className = 'engine bad';
-      eng.textContent = 'Could not read this file. ' + (err && err.message ? err.message : '');
+      eng.textContent = 'This file could not be opened. ' + (err && err.message ? err.message + ' ' : '') + 'Check that it plays on this device, or choose another file.';
     } finally {
       try { input.dispose && input.dispose(); } catch (e) {}
     }
@@ -681,7 +646,7 @@ video { display: block; width: 100%; max-height: 300px; border-radius: 8px; back
     } catch (err) {
       $('progress').hidden = true;
       var canceled = err && (err.name === 'ConversionCanceledError' || (M.ConversionCanceledError && err instanceof M.ConversionCanceledError));
-      if (!canceled) showError('Compression stopped. ' + (err && err.message ? err.message : 'Please try another setting.'));
+      if (!canceled) showError('Compression stopped before it finished. ' + (err && err.message ? err.message + ' ' : '') + 'Try a smaller setting, or reload the page and try again.');
     } finally {
       state.busy = false; state.conv = null;
       try { input.dispose && input.dispose(); } catch (e) {}
